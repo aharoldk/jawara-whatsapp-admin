@@ -1,0 +1,26 @@
+{
+  "name": "whatsapp-admin",
+  "version": "1.0.0",
+  "description": "WhatsApp Admin Application",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "admin"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.4.4",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.23.0",
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: whatsapp-admin-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: whatsapp_admin
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - whatsapp-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/whatsapp_admin --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: whatsapp-admin-waha
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - WHATSAPP_HOOK_URL=http://app:3000/api/webhooks/whatsapp
+      - WHATSAPP_HOOK_EVENTS=message,session.status
+      - WAHA_PRINT_QR=True
+    volumes:
+      - waha_data:/app/.sessions
+    networks:
+      - whatsapp-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  waha_data:
+    driver: local
+  node_modules:
+    driver: local
