@@ -1,5 +1,5 @@
+const authRoutes = require('./authRoutes');
 const userRoutes = require('./userRoutes');
-const messageRoutes = require('./messageRoutes');
 const wahaRoutes = require('./wahaRoutes');
 const customerRoutes = require('./customerRoutes');
 const promotionSchedulerRoutes = require('./promotionSchedulerRoutes');
@@ -9,39 +9,27 @@ const routes = [
   {
     method: 'GET',
     path: '/',
-    handler: (request, h) => {
-      return {
-        success: true,
-        message: 'WhatsApp Admin API',
-        version: '1.0.0',
-        status: 'running',
-        endpoints: {
-          health: '/api/health',
-          users: '/api/users',
-          customers: '/api/customers',
-          messages: '/api/messages',
-          promotions: '/api/promotions',
-          reminders: '/api/reminders',
-          whatsapp: '/api/whatsapp/sessions',
-          webhook: '/api/webhooks/whatsapp'
-        }
-      };
-    }
+    options: { auth: false },
+    handler: (request, h) => ({
+      success: true,
+      message: 'WhatsApp Admin API',
+      version: '1.0.0',
+      status: 'running'
+    })
   },
   {
     method: 'GET',
     path: '/api/health',
-    handler: (request, h) => {
-      return {
-        success: true,
-        message: 'API is running',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-      };
-    }
+    options: { auth: false },
+    handler: (request, h) => ({
+      success: true,
+      message: 'API is running',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    })
   },
+  ...authRoutes,
   ...userRoutes,
-  ...messageRoutes,
   ...customerRoutes,
   ...promotionSchedulerRoutes,
   ...reminderRoutes,
@@ -49,4 +37,3 @@ const routes = [
 ];
 
 module.exports = routes;
-

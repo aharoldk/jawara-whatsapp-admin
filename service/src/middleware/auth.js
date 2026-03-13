@@ -1,33 +1,44 @@
 const Boom = require('@hapi/boom');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 
-// Authentication middleware for Hapi
+// Public paths that don't need authentication
+const PUBLIC_PATHS = [
+  '/',
+  '/api/health',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/webhooks/whatsapp'
+];
+
 const authenticate = {
   name: 'authenticate',
   version: '1.0.0',
   register: async (server, options) => {
     server.ext('onPreAuth', (request, h) => {
-      // Skip authentication for health check and root routes
-      if (request.path === '/' || request.path === '/api/health') {
+      if (PUBLIC_PATHS.includes(request.path)) {
         return h.continue;
       }
 
-      const token = request.headers.authorization?.replace('Bearer ', '');
-
-      if (!token) {
-        throw Boom.unauthorized('Authentication required');
+      const authHeader = request.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw Boom.unauthorized('Authentication required. Please provide a Bearer token.');
       }
 
-      // TODO: Verify JWT token
-      // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // request.app.user = decoded;
+      const token = authHeader.replace('Bearer ', '').trim();
 
-      // For now, just pass through
-      request.app.user = { id: '1', role: 'admin' };
-
-      return h.continue;
+      try {
+        const decoded = jwt.verify(token, config.jwt.secret);
+        request.app.user = decoded;
+        return h.continue;
+      } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+          throw Boom.unauthorized('Token expired. Please login again.');
+        }
+        throw Boom.unauthorized('Invalid token. Please login again.');
+      }
     });
   }
 };
 
 module.exports = { authenticate };
-
