@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; }
+
+:root {
+  --wa-green: #25D366;
+  --wa-dark: #075E54;
+  --wa-teal: #128C7E;
+  --sidebar-bg: #111b21;
+}
+
+.ant-layout-sider { background: var(--sidebar-bg) !important; }
+.ant-layout-sider .ant-menu { background: transparent !important; border: none !important; }
+.ant-layout-sider .ant-menu-item { color: #d1d5db !important; border-radius: 8px !important; margin: 2px 8px !important; width: calc(100% - 16px) !important; }
+.ant-layout-sider .ant-menu-item:hover,
+.ant-layout-sider .ant-menu-item-selected { background: var(--wa-teal) !important; color: white !important; }
+.ant-layout-header { background: white !important; border-bottom: 1px solid #e5e7eb !important; }
