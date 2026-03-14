@@ -9,23 +9,17 @@ class CustomerService {
   async getCustomerById(id) {
     try {
       const customer = await customerRepository.findById(id);
-      if (!customer) {
-        throw Boom.notFound('Customer not found');
-      }
+      if (!customer) throw Boom.notFound('Customer not found');
       return customer;
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
       throw error;
     }
   }
 
-  async getCustomerByWhatsappNo(whatsappNo) {
-    const customer = await customerRepository.findByWhatsappNo(whatsappNo);
-    if (!customer) {
-      throw Boom.notFound('Customer not found with this WhatsApp number');
-    }
+  async getCustomerByWhatsappNumber(whatsappNumber) {
+    const customer = await customerRepository.findByWhatsappNumber(whatsappNumber);
+    if (!customer) throw Boom.notFound('Customer not found with this WhatsApp number');
     return customer;
   }
 
@@ -39,28 +33,18 @@ class CustomerService {
 
   async getCustomersByStatus(status) {
     const validStatuses = ['active', 'inactive', 'blocked'];
-    if (!validStatuses.includes(status)) {
-      throw Boom.badRequest('Invalid status. Must be: active, inactive, or blocked');
-    }
+    if (!validStatuses.includes(status)) throw Boom.badRequest('Invalid status');
     return await customerRepository.findByStatus(status);
   }
 
   async createCustomer(customerData) {
     try {
-      // Check if WhatsApp number already exists
-      const existing = await customerRepository.findByWhatsappNo(customerData.whatsappNo);
-      if (existing) {
-        throw Boom.conflict('Customer with this WhatsApp number already exists');
-      }
-
+      const existing = await customerRepository.findByWhatsappNumber(customerData.whatsappNumber);
+      if (existing) throw Boom.conflict('Customer with this WhatsApp number already exists');
       return await customerRepository.create(customerData);
     } catch (error) {
-      if (error.name === 'ValidationError') {
-        throw Boom.badRequest(error.message);
-      }
-      if (error.code === 11000) {
-        throw Boom.conflict('Customer with this WhatsApp number already exists');
-      }
+      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
+      if (error.code === 11000) throw Boom.conflict('Customer with this WhatsApp number already exists');
       throw error;
     }
   }
@@ -68,31 +52,19 @@ class CustomerService {
   async updateCustomer(id, customerData) {
     try {
       const existing = await customerRepository.findById(id);
-      if (!existing) {
-        throw Boom.notFound('Customer not found');
-      }
+      if (!existing) throw Boom.notFound('Customer not found');
 
-      // If WhatsApp number is being updated, check for duplicates
-      if (customerData.whatsappNo && customerData.whatsappNo !== existing.whatsappNo) {
-        const duplicate = await customerRepository.findByWhatsappNo(customerData.whatsappNo);
-        if (duplicate && duplicate.id !== id) {
-          throw Boom.conflict('Another customer with this WhatsApp number already exists');
-        }
+      if (customerData.whatsappNumber && customerData.whatsappNumber !== existing.whatsappNumber) {
+        const duplicate = await customerRepository.findByWhatsappNumber(customerData.whatsappNumber);
+        if (duplicate && duplicate.id !== id) throw Boom.conflict('WhatsApp number already used');
       }
 
       const updated = await customerRepository.update(id, customerData);
-      if (!updated) {
-        throw Boom.notFound('Customer not found');
-      }
-
+      if (!updated) throw Boom.notFound('Customer not found');
       return updated;
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
-      if (error.name === 'ValidationError') {
-        throw Boom.badRequest(error.message);
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
+      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
       throw error;
     }
   }
@@ -100,20 +72,12 @@ class CustomerService {
   async deleteCustomer(id) {
     try {
       const customer = await customerRepository.findById(id);
-      if (!customer) {
-        throw Boom.notFound('Customer not found');
-      }
-
+      if (!customer) throw Boom.notFound('Customer not found');
       const deleted = await customerRepository.delete(id);
-      if (!deleted) {
-        throw Boom.internal('Failed to delete customer');
-      }
-
+      if (!deleted) throw Boom.internal('Failed to delete customer');
       return { message: 'Customer deleted successfully' };
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
       throw error;
     }
   }
@@ -121,15 +85,10 @@ class CustomerService {
   async addTagToCustomer(id, tag) {
     try {
       const customer = await customerRepository.findById(id);
-      if (!customer) {
-        throw Boom.notFound('Customer not found');
-      }
-
+      if (!customer) throw Boom.notFound('Customer not found');
       return await customerRepository.addTag(id, tag);
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
       throw error;
     }
   }
@@ -137,15 +96,22 @@ class CustomerService {
   async removeTagFromCustomer(id, tag) {
     try {
       const customer = await customerRepository.findById(id);
-      if (!customer) {
-        throw Boom.notFound('Customer not found');
-      }
-
+      if (!customer) throw Boom.notFound('Customer not found');
       return await customerRepository.removeTag(id, tag);
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
+      throw error;
+    }
+  }
+
+  async updateCustomerData(id, data) {
+    try {
+      const customer = await customerRepository.findById(id);
+      if (!customer) throw Boom.notFound('Customer not found');
+      const mergedData = { ...customer.data?.toObject?.() || customer.data || {}, ...data };
+      return await customerRepository.update(id, { data: mergedData });
+    } catch (error) {
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
       throw error;
     }
   }
@@ -154,32 +120,10 @@ class CustomerService {
     try {
       return await customerRepository.updateLastContacted(id);
     } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
-      throw error;
-    }
-  }
-
-  async updatePayload(id, payload) {
-    try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) {
-        throw Boom.notFound('Customer not found');
-      }
-
-      // Merge existing payload with new data
-      const mergedPayload = { ...customer.payload, ...payload };
-
-      return await customerRepository.update(id, { payload: mergedPayload });
-    } catch (error) {
-      if (error.name === 'CastError') {
-        throw Boom.badRequest('Invalid customer ID format');
-      }
+      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
       throw error;
     }
   }
 }
 
 module.exports = new CustomerService();
-

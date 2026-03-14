@@ -65,7 +65,7 @@ class WahaService {
    */
   async getQRCode(sessionName) {
     try {
-      const response = await fetch(`${this.baseUrl}/api/sessions/${sessionName}/auth/qr`, {
+      const response = await fetch(`${this.baseUrl}/api/${sessionName}/auth/qr`, {
         method: 'GET',
         headers: this.getHeaders()
       });
