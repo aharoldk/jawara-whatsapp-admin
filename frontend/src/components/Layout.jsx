@@ -69,7 +69,6 @@ export default function MainLayout() {
           gap: 10,
           padding: '0 16px'
         }}>
-          <WhatsAppOutlined style={{ fontSize: 22, color: '#4ade80', flexShrink: 0 }} />
           {!collapsed && (
             <Text strong style={{ color: 'white', fontSize: 15, whiteSpace: 'nowrap' }}>
               Jawara WA
