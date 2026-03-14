@@ -31,7 +31,7 @@ module.exports = {
 
   // Reminder config
   reminder: {
-    enabled: process.env.REMINDER_ENABLED === 'true' || true,
+    enabled: process.env.REMINDER_ENABLED !== 'false',
     interval: parseInt(process.env.REMINDER_INTERVAL) || 60000, // 1 minute
     rateLimit: parseInt(process.env.MESSAGE_RATE_LIMIT) || 1000 // 1 second
   }

@@ -311,23 +311,22 @@ class ReminderService {
       throw Boom.badRequest('Message template is required');
     }
 
-    // Check for valid placeholders
-    const placeholderPattern = /\{([^}]+)\}/g;
-    const matches = message.match(placeholderPattern);
+    // Mustache uses {{variable}} — validate only double-brace placeholders
+    const placeholderPattern = /\{\{([^}]+)\}\}/g;
+    const matches = [...message.matchAll(placeholderPattern)];
 
-    if (matches) {
-      const validPrefixes = ['name', 'whatsappNo', 'payload.', 'daysElapsed'];
-      for (const match of matches) {
-        const placeholder = match.slice(1, -1);
-        const isValid = validPrefixes.some(prefix =>
-          placeholder === prefix || placeholder.startsWith(prefix)
+    const validPrefixes = ['fullName', 'whatsappNumber', 'address', 'tags', 'daysElapsed', 'data.'];
+    for (const match of matches) {
+      const placeholder = match[1].trim();
+      const isValid = validPrefixes.some(prefix =>
+        placeholder === prefix || placeholder.startsWith(prefix)
+      );
+
+      if (!isValid) {
+        throw Boom.badRequest(
+          `Placeholder tidak valid: {{${placeholder}}}. ` +
+          `Placeholder yang tersedia: {{fullName}}, {{whatsappNumber}}, {{address}}, {{tags}}, {{daysElapsed}}, {{data.namaField}}`
         );
-
-        if (!isValid) {
-          throw Boom.badRequest(
-            `Invalid placeholder: ${match}. Valid placeholders are: {name}, {whatsappNo}, {payload.fieldName}, {daysElapsed}`
-          );
-        }
       }
     }
   }
