@@ -25,7 +25,7 @@ module.exports = {
 
   // Scheduler config
   scheduler: {
-    enabled: process.env.SCHEDULER_ENABLED === 'true' || true,
+    enabled: process.env.SCHEDULER_ENABLED !== 'false',
     interval: parseInt(process.env.SCHEDULER_INTERVAL) || 60000 // 1 minute
   },
 
