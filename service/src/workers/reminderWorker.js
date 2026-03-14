@@ -1,42 +1,38 @@
+const cron = require('node-cron');
+const Mustache = require('mustache');
 const reminderRepository = require('../repositories/ReminderRepository');
 const customerRepository = require('../repositories/CustomerRepository');
 const reminderService = require('../services/ReminderService');
 const wahaService = require('../services/WahaService');
-const config = require('../config');
 const Customer = require('../models/Customer');
 
 class ReminderWorker {
   constructor() {
+    this.task = null;
     this.isRunning = false;
-    this.interval = null;
-    this.checkIntervalMs = config.reminder?.interval || 60000;
-    this.rateLimit = config.reminder?.rateLimit || 1000;
+    this.cronExpression = process.env.REMINDER_CRON || '* * * * *';
+    this.rateLimit = parseInt(process.env.MESSAGE_RATE_LIMIT) || 1000;
   }
 
   start() {
     if (this.isRunning) {
-      console.log('⏰ Reminder worker is already running');
+      console.log('⏰ Reminder worker already running');
       return;
     }
-
-    console.log('⏰ Starting reminder worker...');
+    console.log(`⏰ Starting reminder worker [cron: ${this.cronExpression}]`);
     this.isRunning = true;
 
-    // Run immediately on start
     this.checkReminders();
 
-    // Then run at intervals
-    this.interval = setInterval(() => {
+    this.task = cron.schedule(this.cronExpression, () => {
       this.checkReminders();
-    }, this.checkIntervalMs);
-
-    console.log(`⏰ Reminder worker started (checking every ${this.checkIntervalMs / 1000}s)`);
+    }, { timezone: process.env.TZ || 'Asia/Jakarta' });
   }
 
   stop() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+    if (this.task) {
+      this.task.stop();
+      this.task = null;
     }
     this.isRunning = false;
     console.log('⏰ Reminder worker stopped');
@@ -44,18 +40,16 @@ class ReminderWorker {
 
   async checkReminders() {
     try {
-      const currentDate = new Date();
-      console.log(`⏰ [${currentDate.toISOString()}] Checking for due reminders...`);
+      const now = new Date();
+      console.log(`⏰ [Reminder] Checking due reminders at ${now.toISOString()}`);
 
-      const dueReminders = await reminderRepository.findDueReminders(currentDate);
-
+      const dueReminders = await reminderRepository.findDueReminders(now);
       if (dueReminders.length === 0) {
-        console.log('⏰ No due reminders to process');
+        console.log('⏰ No due reminders');
         return;
       }
 
-      console.log(`⏰ Found ${dueReminders.length} due reminder(s) to process`);
-
+      console.log(`⏰ Found ${dueReminders.length} due reminder(s)`);
       for (const reminder of dueReminders) {
         await this.processReminder(reminder);
       }
@@ -65,210 +59,110 @@ class ReminderWorker {
   }
 
   async processReminder(reminder, isManual = false) {
-    const logData = {
-      reminderId: reminder._id,
-      executedAt: new Date(),
-      status: 'success',
-      totalRecipients: 0,
-      successCount: 0,
-      failureCount: 0,
-      queryConditionsUsed: reminder.queryConditions,
-      details: {}
-    };
-
     try {
-      console.log(`⏰ Processing reminder: ${reminder.name} (ID: ${reminder.id})`);
+      console.log(`⏰ Processing reminder: "${reminder.name}" (${reminder.id})`);
 
-      // Parse query conditions
+      // Parse date placeholders in queryConditions
       const parsedConditions = reminderService.parseQueryConditions(reminder.queryConditions);
-      console.log('⏰ Parsed conditions:', JSON.stringify(parsedConditions));
+      const mongoQuery = this.buildMongoQuery(parsedConditions);
+      const customers = await Customer.find(mongoQuery).lean();
 
-      // Query customers using MongoDB directly for complex queries
-      const customers = await this.queryCustomers(parsedConditions);
-      logData.totalRecipients = customers.length;
+      console.log(`⏰ Matched ${customers.length} customer(s)`);
 
-      if (customers.length === 0) {
-        console.log('⏰ No customers match the query conditions');
-        logData.status = 'success';
-        logData.details.message = 'No matching customers found';
-      } else {
-        console.log(`⏰ Found ${customers.length} matching customer(s)`);
+      let successCount = 0, failureCount = 0;
 
-        // Send messages to all matching customers
-        for (const customer of customers) {
-          try {
-            // Personalize message
-            const personalizedMessage = this.personalizeMessage(
-              reminder.message,
-              customer,
-              reminder.queryConditions
-            );
-
-            // Send via WAHA
-            const whatsappId = customer.whatsappNo.replace(/\D/g, '') + '@c.us';
-            await wahaService.sendTextMessage(
-              'default',
-              whatsappId,
-              personalizedMessage
-            );
-
-            logData.successCount++;
-            console.log(`⏰ Sent to ${customer.name} (${customer.whatsappNo})`);
-
-            // Rate limiting
-            await this.sleep(this.rateLimit);
-          } catch (error) {
-            logData.failureCount++;
-            console.error(`⏰ Failed to send to ${customer.name}:`, error.message);
+      for (const customer of customers) {
+        try {
+          if (!customer.whatsappNumber) {
+            console.warn(`⏰ No WhatsApp number: ${customer.fullName}`);
+            failureCount++;
+            continue;
           }
+
+          // Build template data for Mustache
+          const daysElapsed = this.calculateDaysElapsed(customer, parsedConditions);
+          const templateData = {
+            fullName: customer.fullName || '',
+            whatsappNumber: customer.whatsappNumber || '',
+            address: customer.address || '',
+            daysElapsed: daysElapsed,
+            tags: (customer.tags || []).join(', '),
+            data: {
+              ibukandung: customer.data?.ibukandung || '',
+              npwp: customer.data?.npwp || '',
+              lastServiceDate: customer.data?.lastServiceDate
+                ? new Date(customer.data.lastServiceDate).toLocaleDateString('id-ID')
+                : '',
+              lastOrder: customer.data?.lastOrder || '',
+              vehicle: (customer.data?.vehicle || []).join(', '),
+              ...(customer.data?.extra || {})
+            }
+          };
+
+          const message = Mustache.render(reminder.message, templateData);
+          const chatId = customer.whatsappNumber.replace(/\D/g, '') + '@c.us';
+
+          await wahaService.sendTextMessage('default', chatId, message);
+          successCount++;
+          console.log(`⏰ Sent to ${customer.fullName}`);
+
+          await this.sleep(this.rateLimit);
+        } catch (err) {
+          failureCount++;
+          console.error(`⏰ Failed to send to ${customer.fullName}:`, err.message);
         }
-
-        // Update reminder counts
-        await reminderRepository.incrementSuccessCount(reminder._id, logData.successCount);
-        await reminderRepository.incrementFailureCount(reminder._id, logData.failureCount);
       }
 
-      // Determine log status
-      if (logData.failureCount > 0 && logData.successCount === 0) {
-        logData.status = 'failed';
-      } else if (logData.failureCount > 0) {
-        logData.status = 'partial';
-      }
+      if (successCount > 0) await reminderRepository.incrementSuccessCount(reminder._id, successCount);
+      if (failureCount > 0) await reminderRepository.incrementFailureCount(reminder._id, failureCount);
 
-      // Update last run and calculate next run
-      const updateData = {
-        lastRun: new Date()
-      };
-
+      const updateData = { lastRun: new Date() };
       if (!isManual) {
-        updateData.nextRun = reminderService.calculateNextRunAfterExecution(
-          new Date(),
-          reminder.frequency
-        );
+        updateData.nextRun = reminderService.calculateNextRunAfterExecution(new Date(), reminder.frequency);
       }
-
       await reminderRepository.updateRunInfo(reminder._id, updateData);
 
-      console.log(`⏰ Reminder completed: ${logData.successCount} sent, ${logData.failureCount} failed`);
-      if (!isManual) {
-        console.log(`⏰ Next run scheduled for: ${updateData.nextRun.toISOString()}`);
+      console.log(`⏰ Reminder "${reminder.name}" done: ${successCount} sent, ${failureCount} failed`);
+      if (!isManual && updateData.nextRun) {
+        console.log(`⏰ Next run: ${updateData.nextRun.toISOString()}`);
       }
-
     } catch (error) {
       console.error(`⏰ Error processing reminder ${reminder.id}:`, error);
-      logData.status = 'failed';
-      logData.error = error.message;
-      logData.details.stack = error.stack;
-    }
-
-    // Save execution log
-    await reminderRepository.createLog(logData);
-  }
-
-  async queryCustomers(parsedConditions) {
-    try {
-      // Build MongoDB query from parsed conditions
-      const query = this.buildMongoQuery(parsedConditions);
-
-      // Execute query
-      const customers = await Customer.find(query).lean();
-
-      return customers;
-    } catch (error) {
-      console.error('⏰ Error querying customers:', error);
-      throw error;
     }
   }
 
   buildMongoQuery(conditions) {
     const query = {};
-
     for (const key in conditions) {
-      const value = conditions[key];
-
-      // Handle nested payload fields
-      if (key.startsWith('payload.')) {
-        query[key] = this.processConditionValue(value);
-      } else if (key === 'status' || key === 'tags') {
-        query[key] = this.processConditionValue(value);
-      } else {
-        query[key] = this.processConditionValue(value);
-      }
+      query[key] = this.processConditionValue(conditions[key]);
     }
-
     return query;
   }
 
   processConditionValue(value) {
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      // Handle operators like $lt, $gt, etc.
       const processed = {};
       for (const op in value) {
-        if (op.startsWith('$')) {
-          processed[op] = value[op];
-        } else {
-          processed[op] = this.processConditionValue(value[op]);
-        }
+        processed[op] = this.processConditionValue(value[op]);
       }
       return processed;
     }
     return value;
   }
 
-  personalizeMessage(message, customer, queryConditions) {
-    let personalized = message;
-
-    // Replace {name}
-    personalized = personalized.replace(/\{name\}/g, customer.name || '');
-
-    // Replace {whatsappNo}
-    personalized = personalized.replace(/\{whatsappNo\}/g, customer.whatsappNo || '');
-
-    // Replace {payload.fieldName}
-    const payloadMatches = personalized.match(/\{payload\.([^}]+)\}/g);
-    if (payloadMatches && customer.payload) {
-      for (const match of payloadMatches) {
-        const fieldName = match.match(/\{payload\.([^}]+)\}/)[1];
-        const value = this.getNestedValue(customer.payload, fieldName);
-        personalized = personalized.replace(match, value || '');
-      }
-    }
-
-    // Replace {daysElapsed}
-    if (personalized.includes('{daysElapsed}')) {
-      const daysElapsed = this.calculateDaysElapsed(customer, queryConditions);
-      personalized = personalized.replace(/\{daysElapsed\}/g, daysElapsed);
-    }
-
-    return personalized;
-  }
-
   calculateDaysElapsed(customer, queryConditions) {
-    // Try to find date field from query conditions
-    const dateFields = ['payload.lastServiceDate', 'payload.lastSessionDate', 'payload.lastVisit'];
-
+    const dateFields = ['data.lastServiceDate', 'data.lastOrderDate', 'data.lastVisit'];
     for (const field of dateFields) {
-      if (queryConditions[field] && customer.payload) {
-        const fieldName = field.replace('payload.', '');
-        const dateValue = this.getNestedValue(customer.payload, fieldName);
-
+      if (queryConditions[field] && customer.data) {
+        const subField = field.replace('data.', '');
+        const dateValue = customer.data[subField];
         if (dateValue) {
-          const date = new Date(dateValue);
-          const now = new Date();
-          const diffTime = Math.abs(now - date);
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          return diffDays;
+          const diffTime = Math.abs(new Date() - new Date(dateValue));
+          return Math.floor(diffTime / (1000 * 60 * 60 * 24));
         }
       }
     }
-
     return 0;
-  }
-
-  getNestedValue(obj, path) {
-    return path.split('.').reduce((current, prop) =>
-      current && current[prop] !== undefined ? current[prop] : null, obj
-    );
   }
 
   sleep(ms) {
@@ -277,4 +171,3 @@ class ReminderWorker {
 }
 
 module.exports = new ReminderWorker();
-
