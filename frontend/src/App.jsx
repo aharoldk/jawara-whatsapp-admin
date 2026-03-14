@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import Promotions from './pages/Promotions';
 import Reminders from './pages/Reminders';
 import Whatsapp from './pages/Whatsapp';
+import Documentation from './pages/Documentation';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="promotions" element={<Promotions />} />
           <Route path="reminders" element={<Reminders />} />
           <Route path="whatsapp" element={<Whatsapp />} />
+          <Route path="documentation" element={<Documentation />} />
         </Route>
       </Routes>
     </AuthProvider>
