@@ -1,0 +1,279 @@
+
+############################################################################################################
+### RESOURCES
+@baseUrl = http://localhost:3000/api
+@auth = Bearer <YOUR_JWT_TOKEN>
+@userId = 69ae42e891d10b5caafebd6c
+@json = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YWU0MmU4OTFkMTBiNWNhYWZlYmQ2YyIsImVtYWlsIjoiYWRtaW5AamF3YXJhLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3MzAyODg4MSwiZXhwIjoxNzczMTE1MjgxfQ.FYooSt2ylGsATWk_3o26BCo5ymGU9wGAAwbCxbU-ylY
+@customerId = 69ae57716b730e9043d77cc6
+@promotionId = 69ae5a9c6b730e9043d77cc7
+@reminderId = 69ae5b3c6b730e9043d77cc8
+
+############################################################################################################
+## Authentication & User Management
+### Health
+GET {{baseUrl}}/health
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{
+    "email": "admin@jawara.com",
+    "password": "admin123"
+}
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+    "name": "Tengku",
+    "email": "tengkudev@gmail.com",
+    "password": "#_@Tribulations99",
+	"phone": "082145858358",
+	"role": "admin"
+}
+
+### Users
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+### Get user by id
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{authToken}}
+
+### Create user
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "Tengku",
+	"email": "tengkudev@gmail.com",
+	"password": "#_tengku@master",
+    "role": "admin",
+    "phone": "082145858358"
+}
+
+### Update user
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "John Updated"
+}
+
+### Delete user
+DELETE {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{authToken}}
+############################################################################################################
+
+############################################################################################################
+## Customer Management
+### Customers - list
+GET {{baseUrl}}/customers
+Authorization: Bearer {{authToken}}
+
+### Customers - list with query
+GET {{baseUrl}}/customers?page=1&limit=10&search=doe
+Authorization: Bearer {{authToken}}
+
+### Get customer by id
+GET {{baseUrl}}/customers/
+Authorization: Bearer {{authToken}}
+
+### Get customer by whatsapp number
+GET {{baseUrl}}/customers/whatsapp/6282145858358
+Authorization: Bearer {{authToken}}
+
+### Search customers
+GET {{baseUrl}}/customers/search/john
+Authorization: Bearer {{authToken}}
+
+### Create customer
+POST {{baseUrl}}/customers
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"fullName": "Sabrina",
+	"whatsappNumber": "6285174392327",
+	"tags": ["vip"],
+	"status": "active"
+}
+
+### Update customer
+PUT {{baseUrl}}/customers/{{customerId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "Jane Updated"
+}
+
+### Patch customer payload
+PATCH {{baseUrl}}/customers/{{customerId}}/payload
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"customField": "value"
+}
+
+### Add tag to customer
+POST {{baseUrl}}/customers/{{customerId}}/tags
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"tag": "new-tag"
+}
+
+### Remove tag from customer
+DELETE {{baseUrl}}/customers/{{customerId}}/tags/new-tag
+Authorization: Bearer {{authToken}}
+
+### Update last contacted
+PATCH {{baseUrl}}/customers/{{customerId}}/last-contacted
+Authorization: Bearer {{authToken}}
+############################################################################################################
+
+############################################################################################################
+## Promotions & Reminders
+### Promotions - list
+GET {{baseUrl}}/promotions?page=1&limit=10&status=scheduled
+Authorization: Bearer {{authToken}}
+
+### Get promotion
+GET {{baseUrl}}/promotions/{{promotionId}}
+Authorization: Bearer {{authToken}}
+
+### Create promotion
+POST {{baseUrl}}/promotions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "Promo X",
+	"message": "Diskon 50%",
+	"scheduledAt": "2026-09-01T12:20:00.000Z",
+	"recipients": ["6282145858358", "6285174392327"]
+}
+
+### Update promotion
+PUT {{baseUrl}}/promotions/{{promotionId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"title": "Promo X Updated"
+}
+
+### Cancel promotion
+PATCH {{baseUrl}}/promotions/{{promotionId}}/cancel
+Authorization: Bearer {{authToken}}
+
+### Delete promotion
+DELETE {{baseUrl}}/promotions/{{promotionId}}
+Authorization: Bearer {{authToken}}
+
+### Reminders - list
+GET {{baseUrl}}/reminders?page=1&limit=10&status=active
+Authorization: Bearer {{authToken}}
+
+### Get reminder
+GET {{baseUrl}}/reminders/{{reminderId}}
+Authorization: Bearer {{authToken}}
+
+### Create reminder
+POST {{baseUrl}}/reminders
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "Reminder A",
+	"frequency": "daily",
+	"query": {"status": "active"},
+	"message": "Hello, this is a reminder"
+}
+
+### Update reminder
+PUT {{baseUrl}}/reminders/{{reminderId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "Reminder Updated"
+}
+
+### Update reminder status
+PATCH {{baseUrl}}/reminders/1/status
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"status": "paused"
+}
+
+### Test reminder query conditions
+POST {{baseUrl}}/reminders/{{reminderId}}/test
+Authorization: Bearer {{authToken}}
+
+### Execute reminder now
+POST {{baseUrl}}/reminders/{{reminderId}}/execute
+Authorization: Bearer {{authToken}}
+
+### Delete reminder
+DELETE {{baseUrl}}/reminders/{{reminderId}}
+Authorization: Bearer {{authToken}}
+############################################################################################################
+
+############################################################################################################
+## WhatsApp Integration
+### WhatsApp sessions - list
+GET {{baseUrl}}/whatsapp/sessions
+Authorization: Bearer {{authToken}}
+
+### Start session
+POST {{baseUrl}}/whatsapp/sessions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"name": "default"
+}
+
+### Get session QR
+GET {{baseUrl}}/whatsapp/sessions/default/qr
+Authorization: Bearer {{authToken}}
+
+### Get session status
+GET {{baseUrl}}/whatsapp/sessions/default/status
+Authorization: Bearer {{authToken}}
+
+### Stop session
+POST {{baseUrl}}/whatsapp/sessions/default/stop
+Authorization: Bearer {{authToken}}
+
+### Send whatsapp text
+POST {{baseUrl}}/whatsapp/send
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+	"session": "default",
+	"recipient": "6287789678911",
+	"content": "Halo dari API client, ini adalah pesan percobaan. Terima kasih kepada Tengku tampan !"
+}
+
+### Webhook (example)
+POST {{baseUrl}}/webhooks/whatsapp
+Content-Type: application/json
+
+{
+	"example": "webhook payload"
+}
+############################################################################################################
