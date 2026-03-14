@@ -1,5 +1,5 @@
 const Reminder = require('../models/Reminder');
-const ReminderLog = require('../models/ReminderLog');
+// const ReminderLog = require('../models/ReminderLog');
 
 class ReminderRepository {
   async findAll(filter = {}, options = {}) {
@@ -100,33 +100,33 @@ class ReminderRepository {
   }
 
   // Reminder Log operations
-  async createLog(logData) {
-    const log = new ReminderLog(logData);
-    return await log.save();
-  }
+  // async createLog(logData) {
+  //   const log = new ReminderLog(logData);
+  //   return await log.save();
+  // }
 
-  async findLogsByReminderId(reminderId, options = {}) {
-    const { page = 1, limit = 10 } = options;
-    const skip = (page - 1) * limit;
+  // async findLogsByReminderId(reminderId, options = {}) {
+  //   const { page = 1, limit = 10 } = options;
+  //   const skip = (page - 1) * limit;
 
-    const [logs, total] = await Promise.all([
-      ReminderLog.find({ reminderId })
-        .sort({ executedAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      ReminderLog.countDocuments({ reminderId })
-    ]);
+  //   const [logs, total] = await Promise.all([
+  //     ReminderLog.find({ reminderId })
+  //       .sort({ executedAt: -1 })
+  //       .skip(skip)
+  //       .limit(limit),
+  //     ReminderLog.countDocuments({ reminderId })
+  //   ]);
 
-    return {
-      logs,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
-    };
-  }
+  //   return {
+  //     logs,
+  //     pagination: {
+  //       total,
+  //       page,
+  //       limit,
+  //       totalPages: Math.ceil(total / limit)
+  //     }
+  //   };
+  // }
 
   buildQuery(filter) {
     const query = {};
