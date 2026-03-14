@@ -19,7 +19,6 @@ const reminderSchema = new mongoose.Schema({
     type: String,
     enum: ['daily', 'weekly', 'monthly'],
     required: true,
-    index: true
   },
   executeAt: {
     type: String,

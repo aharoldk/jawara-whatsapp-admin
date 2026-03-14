@@ -1,20 +1,18 @@
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
-  name: {
+  fullName: {
     type: String,
     required: true,
     trim: true,
     index: true
   },
-  whatsappNo: {
+  whatsappNumber: {
     type: String,
     required: true,
     trim: true,
-    index: true,
     validate: {
       validator: function(v) {
-        // Validate WhatsApp number format (basic validation)
         return /^\+?[1-9]\d{1,14}$/.test(v.replace(/\s/g, ''));
       },
       message: props => `${props.value} is not a valid WhatsApp number!`
@@ -22,11 +20,18 @@ const customerSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    trim: true
+    trim: true,
+    default: ''
   },
-  payload: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {}
+  // Data object: flexible customer metadata (sesuai desain)
+  data: {
+    ibukandung: { type: String, default: '' },
+    npwp:       { type: String, default: '' },
+    lastServiceDate: { type: Date, default: null },
+    lastOrder:  { type: String, default: '' },
+    vehicle:    { type: [String], default: [] },
+    // Extra fields stored freely
+    extra: { type: mongoose.Schema.Types.Mixed, default: {} }
   },
   tags: [{
     type: String,
@@ -34,7 +39,8 @@ const customerSchema = new mongoose.Schema({
   }],
   notes: {
     type: String,
-    trim: true
+    trim: true,
+    default: ''
   },
   status: {
     type: String,
@@ -57,19 +63,16 @@ const customerSchema = new mongoose.Schema({
   }
 });
 
-// Indexes for better query performance
-customerSchema.index({ whatsappNo: 1 }, { unique: true });
-customerSchema.index({ name: 'text' });
+customerSchema.index({ whatsappNumber: 1 }, { unique: true });
+customerSchema.index({ fullName: 'text' });
 customerSchema.index({ status: 1 });
 customerSchema.index({ tags: 1 });
 customerSchema.index({ createdAt: -1 });
 
-// Virtual for formatted WhatsApp ID
+// Virtual: WhatsApp chat ID format
 customerSchema.virtual('whatsappId').get(function() {
-  // Convert phone number to WhatsApp ID format
-  const cleaned = this.whatsappNo.replace(/\D/g, '');
+  const cleaned = this.whatsappNumber.replace(/\D/g, '');
   return `${cleaned}@c.us`;
 });
 
 module.exports = mongoose.model('Customer', customerSchema);
-

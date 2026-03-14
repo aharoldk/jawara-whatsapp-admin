@@ -8,12 +8,7 @@ class Database {
 
   async connect() {
     try {
-      const options = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      };
-
-      await mongoose.connect(config.database.url, options);
+      await mongoose.connect(config.database.url);
 
       console.log('📊 Database connected successfully');
       console.log(`📊 Database: ${config.database.name}`);
