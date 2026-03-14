@@ -58,9 +58,6 @@ export default function Customers() {
       address: record.address,
       status: record.status,
       notes: record.notes,
-      tags: record.tags,
-      ibukandung: record.data?.ibukandung,
-      npwp: record.data?.npwp,
       lastOrder: record.data?.lastOrder,
     });
     setModalOpen(true);
@@ -106,10 +103,6 @@ export default function Customers() {
     {
       title: 'Status', dataIndex: 'status', key: 'status',
       render: (v) => <Tag color={STATUS_COLOR[v]}>{STATUS_LABEL[v]}</Tag>
-    },
-    {
-      title: 'Tags', dataIndex: 'tags', key: 'tags',
-      render: (tags) => tags?.map(t => <Tag key={t}>{t}</Tag>)
     },
     {
       title: 'Last Service', dataIndex: ['data', 'lastServiceDate'], key: 'lastServiceDate',
@@ -181,55 +174,24 @@ export default function Customers() {
         footer={null} width={600}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 16 }}>
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="fullName" label="Nama Lengkap" rules={[{ required: true }]}>
-                <Input placeholder="Contoh: Budi Santoso" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="whatsappNumber" label="Nomor WhatsApp" rules={[{ required: true }]}>
-                <Input placeholder="628123456789" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form.Item name="fullName" label="Nama Lengkap" rules={[{ required: true }]}>
+            <Input placeholder="Contoh: Budi Santoso" />
+          </Form.Item>
+          <Form.Item name="whatsappNumber" label="Nomor WhatsApp" rules={[{ required: true }]}>
+            <Input placeholder="628123456789" />
+          </Form.Item>
           <Form.Item name="address" label="Alamat">
             <TextArea rows={2} placeholder="Alamat lengkap" />
           </Form.Item>
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="status" label="Status" initialValue="active">
-                <Select>
-                  <Option value="active">Aktif</Option>
-                  <Option value="inactive">Tidak Aktif</Option>
-                  <Option value="blocked">Diblokir</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="tags" label="Tags">
-                <Select mode="tags" placeholder="Tambah tag..." />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Divider>Data Tambahan</Divider>
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="ibukandung" label="Nama Ibu Kandung">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="npwp" label="NPWP">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item name="lastOrder" label="Last Order">
-            <Input placeholder="Order terakhir" />
-          </Form.Item>
           <Form.Item name="notes" label="Catatan">
             <TextArea rows={2} />
+          </Form.Item>
+          <Form.Item name="status" label="Status" initialValue="active">
+            <Select>
+              <Option value="active">Aktif</Option>
+              <Option value="inactive">Tidak Aktif</Option>
+              <Option value="blocked">Diblokir</Option>
+            </Select>
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
