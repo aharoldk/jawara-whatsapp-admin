@@ -14,10 +14,12 @@ export default function Reminders() {
   const {
     data,
     loading,
+    pagination,
     modalOpen,
     testResult,
     editingRecord,
     form,
+    fetchData,
     setModalOpen,
     openCreate,
     openEdit,
@@ -77,7 +79,14 @@ export default function Reminders() {
       />
 
       <Card style={{ borderRadius: 12 }}>
-        <Table columns={columns} dataSource={data} rowKey="id" loading={loading} />
+        <Table
+          columns={columns} dataSource={data} rowKey="id" loading={loading}
+          pagination={{
+            ...pagination,
+            onChange: (p, ps) => fetchData(p, ps),
+            showTotal: (t) => `Total : ${t}`
+          }}
+        />
       </Card>
 
       <Modal

@@ -5,17 +5,19 @@ import { Form } from 'antd';
 
 export function useReminder() {
     const [data, setData] = useState([]);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [testResult, setTestResult] = useState(null);
     const [form] = Form.useForm();
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (page = 1, pageSize = 10) => {
         setLoading(true);
         try {
-        const res = await remindersAPI.getAll({ limit: 100 });
+        const res = await remindersAPI.getAll({ page, limit: pageSize });
         setData(res.data.data);
+        setPagination({ current: page, pageSize, total: res.data.pagination.total });
         } catch { message.error('Gagal memuat data reminder'); }
         finally { setLoading(false); }
     }, []);
@@ -92,8 +94,10 @@ export function useReminder() {
         testResult,
         editingRecord,
         form,
+        pagination,
         setModalOpen,
         openCreate,
+        fetchData,
         openEdit,
         setEditingRecord,
         handleStatusToggle,
