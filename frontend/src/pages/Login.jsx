@@ -1,98 +1,51 @@
-import { useState } from 'react';
 import { Form, Input, Button, Typography, Alert, Divider } from 'antd';
-import { MailOutlined, LockOutlined, WhatsAppOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../store/auth';
+import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { useLogin } from './hooks/useLogin';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export default function Login() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const onFinish = async ({ email, password }) => {
-    setLoading(true);
-    setError('');
-    try {
-      await login(email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.error?.message || 'Login gagal. Periksa email dan password.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, error, handleLogin } = useLogin();
 
   return (
     <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
-      background: '#f5f6fa'
+      minHeight: '100vh', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 24, background: '#f5f6fa'
     }}>
       <div style={{
-        width: '100%',
-        maxWidth: 400,
-        background: '#ffffff',
-        borderRadius: 16,
-        padding: '40px 40px 36px',
+        width: '100%', maxWidth: 400, background: '#fff',
+        borderRadius: 16, padding: '40px 40px 36px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.07)'
       }}>
-
         {error && (
-          <Alert
-            message={error}
-            type="error"
-            showIcon
-            style={{ marginBottom: 20, borderRadius: 8 }}
-          />
+          <Alert message={error} type="error" showIcon
+            style={{ marginBottom: 20, borderRadius: 8 }} />
         )}
 
-        <Form onFinish={onFinish} layout="vertical" size="large" requiredMark={false}>
-          <Form.Item
-            name="email"
-            label={<Text style={{ fontWeight: 500 }}>Email</Text>}
+        <Form onFinish={handleLogin} layout="vertical" size="large" requiredMark={false}>
+          <Form.Item name="email" label={<Text style={{ fontWeight: 500 }}>Email</Text>}
             rules={[
               { required: true, message: 'Email wajib diisi' },
               { type: 'email', message: 'Format email tidak valid' }
             ]}
           >
-            <Input
-              prefix={<MailOutlined style={{ color: '#9ca3af' }} />}
-              placeholder="admin@jawara.com"
-              style={{ borderRadius: 8 }}
-            />
+            <Input prefix={<MailOutlined style={{ color: '#9ca3af' }} />}
+              placeholder="admin@jawara.com" style={{ borderRadius: 8 }} />
           </Form.Item>
 
-          <Form.Item
-            name="password"
-            label={<Text style={{ fontWeight: 500 }}>Password</Text>}
+          <Form.Item name="password" label={<Text style={{ fontWeight: 500 }}>Password</Text>}
             rules={[{ required: true, message: 'Password wajib diisi' }]}
             style={{ marginBottom: 24 }}
           >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#9ca3af' }} />}
-              placeholder="Masukkan password"
-              style={{ borderRadius: 8 }}
-            />
+            <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />}
+              placeholder="Masukkan password" style={{ borderRadius: 8 }} />
           </Form.Item>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            block
-            loading={loading}
+          <Button type="primary" htmlType="submit" block loading={loading}
             style={{
-              height: 44,
-              fontSize: 15,
-              fontWeight: 600,
-              borderRadius: 8,
-              background: '#16a34a',
-              borderColor: '#16a34a'
+              height: 44, fontSize: 15, fontWeight: 600,
+              borderRadius: 8, background: '#16a34a', borderColor: '#16a34a'
             }}
           >
             Masuk
