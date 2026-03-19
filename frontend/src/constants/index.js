@@ -1,3 +1,4 @@
+// Whatsapp
 export const SESSION_COLOR = {
   WORKING     : 'success',
   CONNECTED   : 'success',
@@ -15,3 +16,8 @@ export const SESSION_LABEL = {
   STOPPED     : 'Tidak Aktif',
   FAILED      : 'Gagal'
 };
+
+// Reminders
+export const STATUS_COLOR = { active: 'green', inactive: 'default', paused: 'orange' };
+export const STATUS_LABEL = { active: 'Aktif', inactive: 'Nonaktif', paused: 'Dijeda' };
+export const FREQ_LABEL = { daily: 'Harian', weekly: 'Mingguan', monthly: 'Bulanan' };
