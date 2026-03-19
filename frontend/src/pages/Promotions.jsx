@@ -162,14 +162,6 @@ export default function Promotions() {
           <Form.Item name="name" label="Nama Promosi" rules={[{ required: true }]}>
             <Input placeholder="Contoh: Promo Valentine 2024" />
           </Form.Item>
-          <Form.Item
-            name="message"
-            label={<>Pesan Template <Tooltip title="Gunakan {{fullName}}, {{data.lastServiceDate}}, {{data.vehicle}}, dll"><InfoCircleOutlined style={{ color: '#25D366' }} /></Tooltip></>}
-            rules={[{ required: true }]}
-          >
-            <TextArea rows={4}
-              placeholder="Halo {{fullName}}, kami ada promo spesial untuk kamu! Service terakhir kamu: {{data.lastServiceDate}}" />
-          </Form.Item>
           <Form.Item name="scheduledAt" label="Jadwal Kirim" rules={[{ required: true }]}>
             <DatePicker showTime style={{ width: '100%' }} placeholder="Pilih tanggal dan jam" />
           </Form.Item>
@@ -184,6 +176,14 @@ export default function Promotions() {
           </Form.Item>
           <Form.Item name="recurringEndDate" label="Tanggal Akhir Berulang (opsional)">
             <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="message"
+            label={<>Pesan Template <Tooltip title="Gunakan {{fullName}}, {{data.lastServiceDate}}, {{data.vehicle}}, dll"><InfoCircleOutlined style={{ color: '#25D366' }} /></Tooltip></>}
+            rules={[{ required: true }]}
+          >
+            <TextArea rows={4}
+              placeholder="Halo {{fullName}}, kami ada promo spesial untuk kamu! Service terakhir kamu: {{data.lastServiceDate}}" />
           </Form.Item>
           <Form.Item name="customerFilter.status" label="Filter Status Customer" initialValue="active">
             <Select>
