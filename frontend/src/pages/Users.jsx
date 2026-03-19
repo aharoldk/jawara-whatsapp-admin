@@ -1,76 +1,29 @@
-import { useState, useEffect } from 'react';
 import {
   Table, Button, Modal, Form, Input, Select, Space,
-  Popconfirm, message, Typography, Card, Tag
+  Popconfirm, Typography, Card, Tag
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { usersAPI } from '../api';
-import { useAuth } from '../store/auth';
+import { useUser } from './hooks/useUser';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function Users() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [form] = Form.useForm();
-  const { user: currentUser } = useAuth();
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await usersAPI.getAll();
-      setData(res.data.data);
-    } catch { message.error('Gagal memuat data pengguna'); }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { fetchData(); }, []);
-
-  const openCreate = () => {
-    setEditingRecord(null);
-    form.resetFields();
-    setModalOpen(true);
-  };
-
-  const openEdit = (record) => {
-    setEditingRecord(record);
-    form.setFieldsValue({ name: record.name, email: record.email, phone: record.phone, role: record.role });
-    setModalOpen(true);
-  };
-
-  const handleSubmit = async (values) => {
-    if (!editingRecord && !values.password) {
-      message.error('Password wajib diisi untuk pengguna baru');
-      return;
-    }
-    try {
-      if (editingRecord) {
-        const payload = { ...values };
-        if (!payload.password) delete payload.password;
-        await usersAPI.update(editingRecord.id, payload);
-        message.success('Pengguna berhasil diperbarui');
-      } else {
-        await usersAPI.create(values);
-        message.success('Pengguna berhasil ditambahkan');
-      }
-      setModalOpen(false);
-      fetchData();
-    } catch (e) {
-      message.error(e.response?.data?.error?.message || 'Gagal menyimpan pengguna');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (id === currentUser?.id) { message.error('Tidak bisa menghapus akun sendiri'); return; }
-    try {
-      await usersAPI.delete(id);
-      message.success('Pengguna berhasil dihapus');
-      fetchData();
-    } catch { message.error('Gagal menghapus pengguna'); }
-  };
+  const {
+    data,
+    pagination,
+    loading,
+    modalOpen,
+    editingRecord,
+    form,
+    currentUser,
+    setModalOpen,
+    fetchData,
+    openCreate,
+    openEdit,
+    handleDelete,
+    handleSubmit
+  } = useUser();
 
   const columns = [
     { title: 'Nama', dataIndex: 'name', key: 'name', render: v => <Text strong>{v}</Text> },
@@ -111,7 +64,8 @@ export default function Users() {
       </div>
 
       <Card style={{ borderRadius: 12 }}>
-        <Table columns={columns} dataSource={data} rowKey="id" loading={loading} />
+        <Table columns={columns} dataSource={data} rowKey="id" loading={loading}
+          pagination={{ ...pagination, onChange: (p, ps) => fetchData(p, ps), showTotal: t => `Total : ${t}` }} />
       </Card>
 
       <Modal

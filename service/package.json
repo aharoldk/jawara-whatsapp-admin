@@ -6,9 +6,14 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/scripts/seed.js"
+    "seed": "node src/scripts/seed.js",
+    "create-tenant": "node src/scripts/createTenant.js",
+    "manage-tenant": "node src/scripts/manageTenant.js"
   },
-  "keywords": ["whatsapp", "admin"],
+  "keywords": [
+    "whatsapp",
+    "admin"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

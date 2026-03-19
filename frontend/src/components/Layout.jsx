@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Avatar, Dropdown, Typography, Space } from 'antd';
-import {
+import { RocketOutlined,
   DashboardOutlined, UserOutlined, TeamOutlined,
   NotificationOutlined, ClockCircleOutlined,
-  WhatsAppOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
-  BookOutlined
+  LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
+  BookOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../store/auth';
 
@@ -19,13 +20,15 @@ const menuItems = [
   { key: '/reminders',    icon: <ClockCircleOutlined />,  label: 'Reminder' },
   { key: '/users',        icon: <UserOutlined />,         label: 'Pengguna' },
   { key: '/documentation',icon: <BookOutlined />,         label: 'Dokumentasi' },
+  { key: '/broadcast',     icon: <RocketOutlined />,       label: 'Broadcast' },
+  { key: '/settings',     icon: <SettingOutlined />,       label: 'Settings' },
 ];
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, tenant, logout } = useAuth();
 
   const userMenu = {
     items: [
@@ -67,12 +70,22 @@ export default function MainLayout() {
           justifyContent: 'center',
           borderBottom: '1px solid rgba(255,255,255,0.08)',
           gap: 10,
-          padding: '0 16px'
+          padding: '0 16px',
+          flexDirection: 'column'
         }}>
-          {!collapsed && (
-            <Text strong style={{ color: 'white', fontSize: 15, whiteSpace: 'nowrap' }}>
-              Jawara WA
-            </Text>
+          {!collapsed ? (
+            <>
+              <Text strong style={{ color: 'white', fontSize: 15, whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                {tenant?.name || 'Jawara WA'}
+              </Text>
+              {tenant?.businessType && (
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, whiteSpace: 'nowrap' }}>
+                  {tenant.businessType}
+                </Text>
+              )}
+            </>
+          ) : (
+            <Text strong style={{ color: 'white', fontSize: 18 }}>J</Text>
           )}
         </div>
 

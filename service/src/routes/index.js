@@ -4,6 +4,8 @@ const wahaRoutes = require('./wahaRoutes');
 const customerRoutes = require('./customerRoutes');
 const promotionSchedulerRoutes = require('./promotionSchedulerRoutes');
 const reminderRoutes = require('./reminderRoutes');
+const broadcastRoutes  = require('./broadcastRoute');
+const settingsRoutes   = require('./settingsRoutes');
 
 const routes = [
   {
@@ -33,7 +35,9 @@ const routes = [
   ...customerRoutes,
   ...promotionSchedulerRoutes,
   ...reminderRoutes,
-  ...wahaRoutes
+  ...wahaRoutes,
+  ...broadcastRoutes,
+  ...settingsRoutes
 ];
 
 module.exports = routes;

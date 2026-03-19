@@ -2,127 +2,80 @@ const customerRepository = require('../repositories/CustomerRepository');
 const Boom = require('@hapi/boom');
 
 class CustomerService {
-  async getAllCustomers(filter = {}, options = {}) {
-    return await customerRepository.findAll(filter, options);
+  async getAllCustomers(tenantId, filter = {}, options = {}) {
+    return customerRepository.findAll(tenantId, filter, options);
   }
 
-  async getCustomerById(id) {
+  async getCustomerById(tenantId, id) {
     try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) throw Boom.notFound('Customer not found');
+      const customer = await customerRepository.findById(tenantId, id);
+      if (!customer) throw Boom.notFound('Customer tidak ditemukan');
       return customer;
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID customer tidak valid');
+      throw e;
     }
   }
 
-  async getCustomerByWhatsappNumber(whatsappNumber) {
-    const customer = await customerRepository.findByWhatsappNumber(whatsappNumber);
-    if (!customer) throw Boom.notFound('Customer not found with this WhatsApp number');
-    return customer;
-  }
-
-  async searchCustomers(searchTerm) {
-    return await customerRepository.searchByName(searchTerm);
-  }
-
-  async getCustomersByTag(tag) {
-    return await customerRepository.findByTag(tag);
-  }
-
-  async getCustomersByStatus(status) {
-    const validStatuses = ['active', 'inactive', 'blocked'];
-    if (!validStatuses.includes(status)) throw Boom.badRequest('Invalid status');
-    return await customerRepository.findByStatus(status);
-  }
-
-  async createCustomer(customerData) {
+  async createCustomer(tenantId, data) {
     try {
-      const existing = await customerRepository.findByWhatsappNumber(customerData.whatsappNumber);
-      if (existing) throw Boom.conflict('Customer with this WhatsApp number already exists');
-      return await customerRepository.create(customerData);
-    } catch (error) {
-      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
-      if (error.code === 11000) throw Boom.conflict('Customer with this WhatsApp number already exists');
-      throw error;
+      const existing = await customerRepository.findByWhatsappNumber(tenantId, data.whatsappNumber);
+      if (existing) throw Boom.conflict('Nomor WhatsApp sudah terdaftar');
+      return customerRepository.create(tenantId, data);
+    } catch (e) {
+      if (e.name === 'ValidationError') throw Boom.badRequest(e.message);
+      if (e.code === 11000) throw Boom.conflict('Nomor WhatsApp sudah terdaftar');
+      throw e;
     }
   }
 
-  async updateCustomer(id, customerData) {
+  async updateCustomer(tenantId, id, data) {
     try {
-      const existing = await customerRepository.findById(id);
-      if (!existing) throw Boom.notFound('Customer not found');
-
-      if (customerData.whatsappNumber && customerData.whatsappNumber !== existing.whatsappNumber) {
-        const duplicate = await customerRepository.findByWhatsappNumber(customerData.whatsappNumber);
-        if (duplicate && duplicate.id !== id) throw Boom.conflict('WhatsApp number already used');
+      const existing = await customerRepository.findById(tenantId, id);
+      if (!existing) throw Boom.notFound('Customer tidak ditemukan');
+      if (data.whatsappNumber && data.whatsappNumber !== existing.whatsappNumber) {
+        const dup = await customerRepository.findByWhatsappNumber(tenantId, data.whatsappNumber);
+        if (dup && String(dup._id) !== String(id)) throw Boom.conflict('Nomor WhatsApp sudah digunakan');
       }
-
-      const updated = await customerRepository.update(id, customerData);
-      if (!updated) throw Boom.notFound('Customer not found');
+      const updated = await customerRepository.update(tenantId, id, data);
+      if (!updated) throw Boom.notFound('Customer tidak ditemukan');
       return updated;
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
-      throw error;
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID customer tidak valid');
+      if (e.name === 'ValidationError') throw Boom.badRequest(e.message);
+      throw e;
     }
   }
 
-  async deleteCustomer(id) {
+  async deleteCustomer(tenantId, id) {
     try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) throw Boom.notFound('Customer not found');
-      const deleted = await customerRepository.delete(id);
-      if (!deleted) throw Boom.internal('Failed to delete customer');
-      return { message: 'Customer deleted successfully' };
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
+      const customer = await customerRepository.findById(tenantId, id);
+      if (!customer) throw Boom.notFound('Customer tidak ditemukan');
+      await customerRepository.delete(tenantId, id);
+      return { message: 'Customer berhasil dihapus' };
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID customer tidak valid');
+      throw e;
     }
   }
 
-  async addTagToCustomer(id, tag) {
-    try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) throw Boom.notFound('Customer not found');
-      return await customerRepository.addTag(id, tag);
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
-    }
+  async addTag(tenantId, id, tag) {
+    const customer = await customerRepository.findById(tenantId, id);
+    if (!customer) throw Boom.notFound('Customer tidak ditemukan');
+    return customerRepository.addTag(tenantId, id, tag);
   }
 
-  async removeTagFromCustomer(id, tag) {
-    try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) throw Boom.notFound('Customer not found');
-      return await customerRepository.removeTag(id, tag);
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
-    }
+  async removeTag(tenantId, id, tag) {
+    const customer = await customerRepository.findById(tenantId, id);
+    if (!customer) throw Boom.notFound('Customer tidak ditemukan');
+    return customerRepository.removeTag(tenantId, id, tag);
   }
 
-  async updateCustomerData(id, data) {
-    try {
-      const customer = await customerRepository.findById(id);
-      if (!customer) throw Boom.notFound('Customer not found');
-      const mergedData = { ...customer.data?.toObject?.() || customer.data || {}, ...data };
-      return await customerRepository.update(id, { data: mergedData });
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
-    }
-  }
-
-  async updateLastContacted(id) {
-    try {
-      return await customerRepository.updateLastContacted(id);
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid customer ID format');
-      throw error;
-    }
+  async updateCustomerData(tenantId, id, data) {
+    const customer = await customerRepository.findById(tenantId, id);
+    if (!customer) throw Boom.notFound('Customer tidak ditemukan');
+    const mergedData = { ...(customer.data?.toObject?.() || customer.data || {}), ...data };
+    return customerRepository.update(tenantId, id, { data: mergedData });
   }
 }
 

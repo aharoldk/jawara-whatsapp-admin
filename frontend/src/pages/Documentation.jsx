@@ -152,7 +152,7 @@ export default function Documentation() {
       children: (
         <Row gutter={[16, 16]}>
           <Col xs={24}>
-            <Card style={{ borderRadius: 12 }} bodyStyle={{ padding: 24 }}>
+            <Card style={{ borderRadius: 12, body: { padding: 0 } }}>
               <Steps
                 direction="vertical"
                 current={-1}

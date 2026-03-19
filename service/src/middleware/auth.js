@@ -1,35 +1,37 @@
-const Boom = require('@hapi/boom');
-const jwt = require('jsonwebtoken');
+const Boom   = require('@hapi/boom');
+const jwt    = require('jsonwebtoken');
 const config = require('../config');
 
-// Public paths that don't need authentication
 const PUBLIC_PATHS = [
   '/',
   '/api/health',
   '/api/auth/login',
-  '/api/auth/register',
+  '/api/auth/register-tenant',
   '/api/webhooks/whatsapp'
 ];
 
 const authenticate = {
-  name: 'authenticate',
+  name   : 'authenticate',
   version: '1.0.0',
-  register: async (server, options) => {
+  register: async (server) => {
     server.ext('onPreAuth', (request, h) => {
-      if (PUBLIC_PATHS.includes(request.path)) {
-        return h.continue;
-      }
+      if (PUBLIC_PATHS.includes(request.path)) return h.continue;
 
       const authHeader = request.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw Boom.unauthorized('Authentication required. Please provide a Bearer token.');
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw Boom.unauthorized('Authentication required');
       }
 
       const token = authHeader.replace('Bearer ', '').trim();
 
       try {
         const decoded = jwt.verify(token, config.jwt.secret);
-        request.app.user = decoded;
+
+        // Inject ke request.app — tersedia di semua handler
+        request.app.user      = decoded;
+        request.app.tenantId  = decoded.tenantId;
+        request.app.subdomain = decoded.subdomain;
+
         return h.continue;
       } catch (err) {
         if (err.name === 'TokenExpiredError') {

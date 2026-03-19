@@ -43,7 +43,7 @@ class ReminderWorker {
       const now = new Date();
       console.log(`⏰ [Reminder] Checking due reminders at ${now.toISOString()}`);
 
-      const dueReminders = await reminderRepository.findDueReminders(now);
+      const dueReminders = await reminderRepository.findAllDueReminders(now);
       if (dueReminders.length === 0) {
         console.log('⏰ No due reminders');
         return;
@@ -65,6 +65,9 @@ class ReminderWorker {
       // Parse date placeholders in queryConditions
       const parsedConditions = reminderService.parseQueryConditions(reminder.queryConditions);
       const mongoQuery = this.buildMongoQuery(parsedConditions);
+      // Scope customers to this tenant
+      const tenantId = reminder.tenantId?._id || reminder.tenantId;
+      mongoQuery.tenantId = tenantId;
       const customers = await Customer.find(mongoQuery).lean();
 
       console.log(`⏰ Matched ${customers.length} customer(s)`);

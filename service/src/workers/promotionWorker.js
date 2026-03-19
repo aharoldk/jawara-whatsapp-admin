@@ -43,7 +43,7 @@ class PromotionWorker {
       const now = new Date();
       console.log(`⏰ [Promotion] Checking pending promotions at ${now.toISOString()}`);
 
-      const pending = await promotionSchedulerRepository.findPendingSchedules(now);
+      const pending = await promotionSchedulerRepository.findAllPendingSchedules(now);
       if (pending.length === 0) {
         console.log('⏰ No pending promotions');
         return;
@@ -61,20 +61,21 @@ class PromotionWorker {
   async processPromotion(promotion) {
     try {
       console.log(`⏰ Processing promotion: "${promotion.name}" (${promotion.id})`);
-      await promotionSchedulerRepository.updateStatus(promotion.id, 'processing');
+      const tenantId = promotion.tenantId?._id || promotion.tenantId;
+      await promotionSchedulerRepository.updateStatus(tenantId, promotion.id, 'processing');
 
-      // Build customer filter
+      // Build customer filter — scoped to this tenant
       const filter = {};
       if (promotion.customerFilter?.status) filter.status = promotion.customerFilter.status;
       else filter.status = 'active';
       if (promotion.customerFilter?.tags?.length > 0) filter.tag = promotion.customerFilter.tags[0];
 
       const customerRepository = require('../repositories/CustomerRepository');
-      const { customers } = await customerRepository.findAll(filter, { limit: 10000 });
+      const { customers } = await customerRepository.findAll(tenantId, filter, { limit: 10000 });
 
       if (customers.length === 0) {
         console.log('⏰ No customers matched filter');
-        await promotionSchedulerRepository.updateStatus(promotion.id, 'completed', {
+        await promotionSchedulerRepository.updateStatus(tenantId, promotion.id, 'completed', {
           executedAt: new Date(), sentCount: 0, failedCount: 0
         });
         return;
@@ -141,7 +142,7 @@ class PromotionWorker {
       }
     } catch (error) {
       console.error(`⏰ Error processing promotion ${promotion.id}:`, error);
-      await promotionSchedulerRepository.updateStatus(promotion.id, 'failed', {
+      await promotionSchedulerRepository.updateStatus(tenantId, promotion.id, 'failed', {
         error: error.message, executedAt: new Date()
       });
     }

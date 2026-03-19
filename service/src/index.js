@@ -16,7 +16,7 @@ const init = async () => {
       cors: {
         origin: ['*'],
         credentials: true,
-        headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+        headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'X-Tenant-Subdomain']
       },
       validate: {
         failAction: async (request, h, err) => {

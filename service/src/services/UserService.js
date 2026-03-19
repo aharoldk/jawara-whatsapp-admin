@@ -1,69 +1,66 @@
 const userRepository = require('../repositories/UserRepository');
-const Boom = require('@hapi/boom');
-const bcrypt = require('bcryptjs');
+const Boom           = require('@hapi/boom');
+const bcrypt         = require('bcryptjs');
 
 class UserService {
-  async getAllUsers(filter = {}) {
-    return await userRepository.findAll(filter);
+  async getAllUsers(tenantId, filter = {}, options = {}) {
+    return userRepository.findAll(tenantId, filter, options);
   }
 
-  async getUserById(id) {
+  async getUserById(tenantId, id) {
     try {
-      const user = await userRepository.findById(id);
-      if (!user) throw Boom.notFound('User not found');
+      const user = await userRepository.findById(tenantId, id);
+      if (!user) throw Boom.notFound('User tidak ditemukan');
       return user;
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid user ID format');
-      throw error;
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID user tidak valid');
+      throw e;
     }
   }
 
-  async createUser(userData) {
-    const existing = await userRepository.findByEmail(userData.email);
-    if (existing) throw Boom.conflict('Email already exists');
+  async createUser(tenantId, data) {
+    const existing = await userRepository.findByEmail(tenantId, data.email);
+    if (existing) throw Boom.conflict('Email sudah digunakan dalam tenant ini');
     try {
-      return await userRepository.create(userData);
-    } catch (error) {
-      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
-      throw error;
+      return userRepository.create(tenantId, data);
+    } catch (e) {
+      if (e.name === 'ValidationError') throw Boom.badRequest(e.message);
+      throw e;
     }
   }
 
-  async updateUser(id, userData) {
+  async updateUser(tenantId, id, data) {
     try {
-      const existing = await userRepository.findById(id);
-      if (!existing) throw Boom.notFound('User not found');
-
-      if (userData.email && userData.email !== existing.email) {
-        const emailExists = await userRepository.findByEmail(userData.email);
-        if (emailExists) throw Boom.conflict('Email already exists');
+      const existing = await userRepository.findById(tenantId, id);
+      if (!existing) throw Boom.notFound('User tidak ditemukan');
+      if (data.email && data.email !== existing.email) {
+        const dup = await userRepository.findByEmail(tenantId, data.email);
+        if (dup) throw Boom.conflict('Email sudah digunakan');
       }
-
-      // If password is being updated, hash it
-      if (userData.password) {
-        userData.password = await bcrypt.hash(userData.password, 12);
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 12);
       }
-
-      const updated = await userRepository.update(id, userData);
-      if (!updated) throw Boom.notFound('User not found');
+      const updated = await userRepository.update(tenantId, id, data);
+      if (!updated) throw Boom.notFound('User tidak ditemukan');
       return updated;
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid user ID format');
-      if (error.name === 'ValidationError') throw Boom.badRequest(error.message);
-      throw error;
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID user tidak valid');
+      if (e.name === 'ValidationError') throw Boom.badRequest(e.message);
+      throw e;
     }
   }
 
-  async deleteUser(id) {
+  async deleteUser(tenantId, id, requesterId) {
+    if (String(id) === String(requesterId))
+      throw Boom.badRequest('Tidak dapat menghapus akun sendiri');
     try {
-      const user = await userRepository.findById(id);
-      if (!user) throw Boom.notFound('User not found');
-      const deleted = await userRepository.delete(id);
-      if (!deleted) throw Boom.internal('Failed to delete user');
-      return { message: 'User deleted successfully' };
-    } catch (error) {
-      if (error.name === 'CastError') throw Boom.badRequest('Invalid user ID format');
-      throw error;
+      const user = await userRepository.findById(tenantId, id);
+      if (!user) throw Boom.notFound('User tidak ditemukan');
+      await userRepository.delete(tenantId, id);
+      return { message: 'User berhasil dihapus' };
+    } catch (e) {
+      if (e.name === 'CastError') throw Boom.badRequest('ID user tidak valid');
+      throw e;
     }
   }
 }
