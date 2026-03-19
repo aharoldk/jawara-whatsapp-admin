@@ -113,6 +113,12 @@ curl -X POST http://localhost:3000/api/auth/register-tenant \
 
 ---
 
+## Cara Testing Secara Local
+Buat file .env.local di folder *frontend*
+isi file dengan : 
+VITE_TENANT_SUBDOMAIN=nama-sub-domain
+
+
 ## Manajemen Tenant
 
 ### Lihat semua tenant
