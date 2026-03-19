@@ -7,7 +7,6 @@ import Customers from './pages/Customers';
 import Users from './pages/Users';
 import Promotions from './pages/Promotions';
 import Reminders from './pages/Reminders';
-import Whatsapp from './pages/Whatsapp';
 import Documentation from './pages/Documentation';
 import Broadcast from './pages/Broadcast';
 
@@ -32,7 +31,6 @@ export default function App() {
           <Route path="users" element={<Users />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="reminders" element={<Reminders />} />
-          <Route path="whatsapp" element={<Whatsapp />} />
           <Route path="documentation" element={<Documentation />} />
           <Route path="broadcast" element={<Broadcast />} />
         </Route>
