@@ -101,7 +101,7 @@ export default function Customers() {
           pagination={{
             ...pagination,
             onChange: (p, ps) => fetchData(p, ps),
-            showTotal: (t) => `Total ${t} customer`
+            showTotal: (t) => `Total : ${t}`
           }}
         />
       </Card>

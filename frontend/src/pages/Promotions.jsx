@@ -88,7 +88,7 @@ export default function Promotions() {
 
       <Card style={{ borderRadius: 12 }}>
         <Table columns={columns} dataSource={data} rowKey="id" loading={loading}
-          pagination={{ ...pagination, onChange: (p, ps) => fetchData(p, ps), showTotal: t => `Total ${t} promosi` }} />
+          pagination={{ ...pagination, onChange: (p, ps) => fetchData(p, ps), showTotal: t => `Total : ${t}` }} />
       </Card>
 
       <Modal
