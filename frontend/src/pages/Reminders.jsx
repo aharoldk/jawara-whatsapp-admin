@@ -4,7 +4,7 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useReminder } from './hooks/useReminder';
-import { FREQ_LABEL, STATUS_COLOR, STATUS_LABEL } from '../constants';
+import { STATUS_COLOR, STATUS_LABEL, FREQ_LABEL } from '../constants';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
