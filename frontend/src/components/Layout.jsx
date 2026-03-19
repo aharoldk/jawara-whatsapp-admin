@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Avatar, Dropdown, Typography, Space } from 'antd';
-import {
+import { RocketOutlined,
   DashboardOutlined, UserOutlined, TeamOutlined,
   NotificationOutlined, ClockCircleOutlined,
-  WhatsAppOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
+  LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   BookOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../store/auth';
@@ -19,6 +19,7 @@ const menuItems = [
   { key: '/reminders',    icon: <ClockCircleOutlined />,  label: 'Reminder' },
   { key: '/users',        icon: <UserOutlined />,         label: 'Pengguna' },
   { key: '/documentation',icon: <BookOutlined />,         label: 'Dokumentasi' },
+  { key: '/broadcast',     icon: <RocketOutlined />,       label: 'Broadcast' },
 ];
 
 export default function MainLayout() {

@@ -49,6 +49,14 @@ export const remindersAPI = {
   testQuery: (id) => client.get(`/reminders/${id}/test`)
 };
 
+// BROADCAST
+export const broadcastAPI = {
+  getCustomers : (params) => client.get('/whatsapp/broadcast/customers', { params }),
+  getSessions  : ()       => client.get('/whatsapp/broadcast/sessions'),
+  preview      : (data)   => client.post('/whatsapp/broadcast/preview', data),
+  send         : (data)   => client.post('/whatsapp/broadcast', data)
+};
+
 // WHATSAPP
 export const wahaAPI = {
   getSessions: () => client.get('/whatsapp/sessions'),
@@ -56,5 +64,6 @@ export const wahaAPI = {
   getQR: (name) => client.get(`/whatsapp/sessions/${name}/qr`),
   getStatus: (name) => client.get(`/whatsapp/sessions/${name}/status`),
   stopSession: (name) => client.post(`/whatsapp/sessions/${name}/stop`),
-  sendMessage: (data) => client.post('/whatsapp/send', data)
+  sendMessage:   (data) => client.post('/whatsapp/send', data),
+  forceRestart:  (name) => client.post(`/whatsapp/sessions/${name}/force-restart`)
 };
