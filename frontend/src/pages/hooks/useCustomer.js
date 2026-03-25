@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { App,  Form } from 'antd';
+import dayjs from 'dayjs';
 import { customersAPI } from '../../api';
 import { useSettings } from './useSettings';
 
@@ -60,7 +61,8 @@ export function useCustomer() {
 
     // Field dinamis dari template — ambil dari data.extra
     for (const field of customerFieldTemplate) {
-      values[`extra__${field.key}`] = record.data?.extra?.[field.key] ?? '';
+      const raw = record.data?.extra?.[field.key] ?? '';
+      values[`extra__${field.key}`] = (field.type === 'date' && raw) ? dayjs(raw) : raw;
     }
 
     form.setFieldsValue(values);
@@ -78,7 +80,10 @@ export function useCustomer() {
     for (const [k, v] of Object.entries(values)) {
       if (k.startsWith('extra__')) {
         const realKey = k.replace('extra__', '');
-        extra[realKey] = v ?? '';
+        const fieldDef = customerFieldTemplate.find(f => f.key === realKey);
+        extra[realKey] = (fieldDef?.type === 'date' && v && dayjs.isDayjs(v))
+          ? v.toISOString()
+          : (v ?? '');
       } else {
         standard[k] = v;
       }
