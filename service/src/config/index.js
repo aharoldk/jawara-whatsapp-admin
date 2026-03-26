@@ -34,6 +34,14 @@ module.exports = {
     enabled: process.env.REMINDER_ENABLED !== 'false',
     interval: parseInt(process.env.REMINDER_INTERVAL) || 60000, // 1 minute
     rateLimit: parseInt(process.env.MESSAGE_RATE_LIMIT) || 1000 // 1 second
+  },
+
+  // Broadcast anti-spam config
+  broadcast: {
+    baseDelayMs    : parseInt(process.env.BROADCAST_BASE_DELAY_MS)     || 7000,
+    jitterMs       : parseInt(process.env.BROADCAST_JITTER_MS)         || 5000,
+    pauseEvery     : parseInt(process.env.BROADCAST_PAUSE_EVERY)       || 20,
+    pauseDurationMs: parseInt(process.env.BROADCAST_PAUSE_DURATION_MS) || 60000
   }
 };
 
