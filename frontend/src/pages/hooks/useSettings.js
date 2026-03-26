@@ -83,9 +83,6 @@ export function useSettings() {
     saveSettings,
     allQueryFields,
     allMessageVars,
-    customerFieldTemplate: settings?.customerFieldTemplate || [],
-    broadcastDefaults    : settings?.broadcastDefaults || {
-      baseDelayMs: 5000, jitterMs: 3000, pauseEvery: 20, pauseDurationMs: 60000
-    }
+    customerFieldTemplate: settings?.customerFieldTemplate || []
   };
 }

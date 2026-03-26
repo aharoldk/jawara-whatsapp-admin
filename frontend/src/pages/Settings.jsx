@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import {
-  Card, Tabs, Button, Table, Modal, Form, Input, Select,
-  Space, Typography, Switch, InputNumber, Tag, Tooltip,
+  Card, Button, Table, Modal, Form, Input, Select,
+  Space, Typography, Switch, Tag, Tooltip,
   Row, Col, Alert, Divider, Popconfirm
 } from 'antd';
 import {
   PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined,
-  InfoCircleOutlined, CodeOutlined, ThunderboltOutlined
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import { useSettings, BUILTIN_MESSAGE_VARS } from './hooks/useSettings';
 
@@ -175,70 +175,9 @@ function FieldTemplateTab({ template, onSave, saving }) {
   );
 }
 
-// ─── Tab 2: Anti-Spam Broadcast ───────────────────────────────────────────────
-function AntiSpamTab({ defaults, onSave, saving }) {
-  const [form] = Form.useForm();
-
-  return (
-    <div>
-      <Alert type="warning" showIcon style={{ marginBottom: 24 }}
-        message="Pengaturan Anti-Spam Broadcast"
-        description="Nilai ini digunakan sebagai default setiap kali broadcast dikirim. Semakin besar delay, semakin aman — tapi proses lebih lama."
-      />
-      <Form form={form} layout="vertical" initialValues={defaults} style={{ maxWidth: 520 }}>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="baseDelayMs" label={
-              <Space>Delay Antar Pesan
-                <Tooltip title="Jeda minimum antar pesan. Rekomendasi: 4000–8000ms"><InfoCircleOutlined /></Tooltip>
-              </Space>
-            } rules={[{ required: true }]}>
-              <InputNumber min={500} max={30000} step={500} style={{ width: '100%' }} addonAfter="ms" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item name="jitterMs" label={
-              <Space>Variasi Delay ±
-                <Tooltip title="Keacakan ±N ms supaya tidak terlihat seperti robot. Rekomendasi: 2000–4000ms"><InfoCircleOutlined /></Tooltip>
-              </Space>
-            } rules={[{ required: true }]}>
-              <InputNumber min={0} max={10000} step={500} style={{ width: '100%' }} addonAfter="ms" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="pauseEvery" label={
-              <Space>Jeda Panjang Tiap N Pesan
-                <Tooltip title="Setelah N pesan dikirim, sistem istirahat panjang. Rekomendasi: 15–30"><InfoCircleOutlined /></Tooltip>
-              </Space>
-            } rules={[{ required: true }]}>
-              <InputNumber min={5} max={100} style={{ width: '100%' }} addonAfter="pesan" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item name="pauseDurationMs" label={
-              <Space>Durasi Jeda Panjang
-                <Tooltip title="Berapa lama istirahat panjang. Rekomendasi: 60000ms (1 menit)"><InfoCircleOutlined /></Tooltip>
-              </Space>
-            } rules={[{ required: true }]}>
-              <InputNumber min={10000} max={300000} step={5000} style={{ width: '100%' }} addonAfter="ms" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving}
-          onClick={async () => { const v = await form.validateFields(); await onSave({ broadcastDefaults: v }); }}
-          style={{ background: '#25D366', borderColor: '#25D366' }}>
-          Simpan Pengaturan Anti-Spam
-        </Button>
-      </Form>
-    </div>
-  );
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Settings() {
-  const { settings, loading, saving, saveSettings, customerFieldTemplate, broadcastDefaults } = useSettings();
+  const { settings, loading, saving, saveSettings, customerFieldTemplate } = useSettings();
 
   if (loading || !settings) {
     return <Card loading style={{ borderRadius: 12 }}><div style={{ height: 300 }} /></Card>;
@@ -248,21 +187,10 @@ export default function Settings() {
     <div>
       <div style={{ marginBottom: 24 }}>
         <Title level={4} style={{ margin: 0 }}>Settings</Title>
-        <Text type="secondary">Konfigurasi template field customer dan pengaturan broadcast</Text>
+        <Text type="secondary">Konfigurasi template field customer</Text>
       </div>
       <Card style={{ borderRadius: 12 }}>
-        <Tabs items={[
-          {
-            key: 'fields',
-            label: <Space><CodeOutlined />Template Field Customer</Space>,
-            children: <FieldTemplateTab template={customerFieldTemplate} onSave={saveSettings} saving={saving} />
-          },
-          {
-            key: 'antispam',
-            label: <Space><ThunderboltOutlined />Anti-Spam Broadcast</Space>,
-            children: <AntiSpamTab defaults={broadcastDefaults} onSave={saveSettings} saving={saving} />
-          }
-        ]} />
+        <FieldTemplateTab template={customerFieldTemplate} onSave={saveSettings} saving={saving} />
       </Card>
     </div>
   );
