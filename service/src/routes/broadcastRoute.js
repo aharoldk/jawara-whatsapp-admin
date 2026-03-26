@@ -1,8 +1,8 @@
-const broadcastService  = require('../services/BroadcastService');
+const broadcastService   = require('../services/BroadcastService');
 const customerRepository = require('../repositories/CustomerRepository');
-const settingRepository  = require('../repositories/SettingRepository');
 const wahaService        = require('../services/WahaService');
 const asyncHandler       = require('../utils/asyncHandler');
+const config             = require('../config');
 const Boom               = require('@hapi/boom');
 
 const broadcastRoutes = [
@@ -22,8 +22,7 @@ const broadcastRoutes = [
 
       if (customers.length === 0) throw Boom.badRequest('Tidak ada customer valid');
 
-      const settings      = await settingRepository.get(tid);
-      const mergedOptions = { ...settings.broadcastDefaults, ...(options || {}) };
+      const mergedOptions = { ...config.broadcast, ...(options || {}) };
 
       const result = await broadcastService.broadcastRichMessage(sessions, customers, message, mergedOptions);
       return h.response({
