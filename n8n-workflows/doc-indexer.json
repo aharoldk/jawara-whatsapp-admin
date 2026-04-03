@@ -1,14 +1,12 @@
 {
-  "name": "Phase 1 — Document Indexer (PDF → Qdrant)",
+  "name": "Document Indexer (Markdown → Qdrant)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "index-docs",
         "responseMode": "responseNode",
-        "options": {
-          "binaryData": true
-        }
+        "options": {}
       },
       "id": "webhook-index-docs",
       "name": "Webhook — Receive Document",
@@ -36,10 +34,14 @@
     },
     {
       "parameters": {
-        "dataType": "binary",
-        "options": {
-          "splitPages": true
-        }
+        "dataType": "json",
+        "jsonData": "={{ $json.body.text }}",
+        "metadata": {
+          "metadataValues": [
+            { "name": "source", "value": "={{ $json.body.filename ?? 'unknown' }}" }
+          ]
+        },
+        "options": {}
       },
       "id": "doc-loader",
       "name": "Default Data Loader",
@@ -60,18 +62,18 @@
     },
     {
       "parameters": {
-        "model": "text-embedding-3-small",
+        "modelName": "models/gemini-embedding-001",
         "options": {}
       },
       "id": "embeddings-openai",
-      "name": "OpenAI Embeddings",
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "name": "Gemini Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [800, 420],
       "credentials": {
-        "openAiApi": {
-          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
-          "name": "OpenAI account"
+        "googleGeminiApi": {
+          "id": "REPLACE_WITH_YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini account"
         }
       }
     },
@@ -100,7 +102,7 @@
     "Recursive Character Text Splitter": {
       "ai_textSplitter": [[{ "node": "Default Data Loader", "type": "ai_textSplitter", "index": 0 }]]
     },
-    "OpenAI Embeddings": {
+    "Gemini Embeddings": {
       "ai_embedding": [[{ "node": "Qdrant — Insert Documents", "type": "ai_embedding", "index": 0 }]]
     }
   },
