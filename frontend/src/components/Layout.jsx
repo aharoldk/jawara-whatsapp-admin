@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
 import {
   LayoutDashboard,
   Users,
@@ -7,6 +8,7 @@ import {
   Megaphone,
   CalendarDays,
   BarChart3,
+  LogOut,
 } from 'lucide-react'
 
 const nav = [
@@ -20,6 +22,14 @@ const nav = [
 ]
 
 export default function Layout() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -45,8 +55,15 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-gray-700 text-xs text-gray-500">
-          v1.0.0
+        <div className="p-4 border-t border-gray-700 flex items-center justify-between">
+          <span className="text-xs text-gray-500">v1.0.0</span>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+          >
+            <LogOut size={14} />
+            Keluar
+          </button>
         </div>
       </aside>
 
