@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — NEVER commit the real .env
+.env
+
+# Docker build artifacts
+backend/.dockerignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/

@@ -1,0 +1,119 @@
+{
+  "name": "Phase 2 — Order Intake Tool (AI extracts order → Backend)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "extract-order",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-order",
+      "name": "Webhook — Extract Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "notes": "Called by the AI Agent in phase1-ai-responder as a Tool when it detects an order intent. Payload: { chatId, conversationText }"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.conversationText }}",
+        "options": {
+          "systemMessage": "You are an order extraction assistant. Extract the order details from the conversation and return ONLY a valid JSON object (no markdown, no explanation) with these fields:\n{\n  \"clientName\": string,\n  \"clientPhone\": string (derived from chatId, strip @c.us),\n  \"items\": [ { \"name\": string, \"qty\": number, \"price\": number } ],\n  \"deliveryDate\": \"YYYY-MM-DD\",\n  \"notes\": string\n}\nIf a field cannot be determined, use null. Price should be 0 if unknown."
+        }
+      },
+      "id": "extract-agent",
+      "name": "LLM — Extract Order JSON",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0,
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "llm-extract",
+      "name": "OpenAI — Extraction Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [460, 480],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.item.json.text ?? $input.item.json.output ?? '{}';\nconst order = JSON.parse(raw);\nconst chatId = $('Webhook — Extract Order').item.json.body.chatId ?? '';\norder.clientPhone = chatId.replace('@c.us', '');\nreturn { json: order };"
+      },
+      "id": "parse-order",
+      "name": "Code — Parse Order JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_BASE_URL }}/orders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "create-order",
+      "name": "Backend — Create Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, orderId: $json._id, message: `Pesanan berhasil dicatat! ID: ${$json._id}. Tanggal pengiriman: ${$json.deliveryDate?.slice(0,10) ?? '-'}` } }}"
+      },
+      "id": "respond-order",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1140, 300]
+    }
+  ],
+  "connections": {
+    "Webhook — Extract Order": {
+      "main": [[{ "node": "LLM — Extract Order JSON", "type": "main", "index": 0 }]]
+    },
+    "LLM — Extract Order JSON": {
+      "main": [[{ "node": "Code — Parse Order JSON", "type": "main", "index": 0 }]]
+    },
+    "OpenAI — Extraction Model": {
+      "ai_languageModel": [[{ "node": "LLM — Extract Order JSON", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Code — Parse Order JSON": {
+      "main": [[{ "node": "Backend — Create Order", "type": "main", "index": 0 }]]
+    },
+    "Backend — Create Order": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Sub-workflow called by the AI Agent (as a Tool) when it detects order intent. Extracts structured order data with LLM and POSTs to the Hapi backend. Set BACKEND_BASE_URL and BACKEND_API_KEY as n8n environment variables."
+  }
+}

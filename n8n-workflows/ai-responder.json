@@ -1,0 +1,197 @@
+{
+  "name": "Phase 1 — AI Responder (WAHA → AI Agent → Reply)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "waha-incoming",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-waha",
+      "name": "Webhook — WAHA Incoming",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.body.payload.fromMe }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "skip-own",
+      "name": "IF — Skip Own Messages",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.payload.body }}",
+        "options": {
+          "systemMessage": "={{ $env.AI_SYSTEM_PROMPT }}"
+        }
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.4,
+          "maxTokens": 1024
+        }
+      },
+      "id": "llm-openai",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [560, 480],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook — WAHA Incoming').item.json.body.payload.from }}",
+        "contextWindowLength": 10
+      },
+      "id": "memory",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [700, 480]
+    },
+    {
+      "parameters": {
+        "name": "knowledge_base",
+        "description": "Search the business knowledge base (products, services, pricing, FAQs, policies) to answer customer questions.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "business-docs",
+          "mode": "id"
+        },
+        "options": {
+          "topK": 5
+        }
+      },
+      "id": "kb-tool",
+      "name": "Knowledge Base Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [840, 480]
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "id": "embeddings-kb",
+      "name": "OpenAI Embeddings (KB)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1,
+      "position": [840, 620],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "business-docs",
+          "mode": "id"
+        },
+        "options": {
+          "topK": 5
+        }
+      },
+      "id": "qdrant-retrieve",
+      "name": "Qdrant Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [980, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WAHA_BASE_URL }}/api/sendText",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Api-Key", "value": "={{ $env.WAHA_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "session", "value": "default" },
+            { "name": "chatId", "value": "={{ $('Webhook — WAHA Incoming').item.json.body.payload.from }}" },
+            { "name": "text", "value": "={{ $json.output }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-reply",
+      "name": "WAHA — Send Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "Webhook — WAHA Incoming": {
+      "main": [[{ "node": "IF — Skip Own Messages", "type": "main", "index": 0 }]]
+    },
+    "IF — Skip Own Messages": {
+      "main": [
+        [],
+        [{ "node": "AI Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "AI Agent": {
+      "main": [[{ "node": "WAHA — Send Reply", "type": "main", "index": 0 }]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Simple Memory": {
+      "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]]
+    },
+    "Knowledge Base Tool": {
+      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
+    },
+    "OpenAI Embeddings (KB)": {
+      "ai_embedding": [[{ "node": "Qdrant Vector Store", "type": "ai_embedding", "index": 0 }]]
+    },
+    "Qdrant Vector Store": {
+      "ai_vectorStore": [[{ "node": "Knowledge Base Tool", "type": "ai_vectorStore", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Receives WAHA webhook events, filters own messages, runs AI Agent with RAG, and sends reply back via WAHA sendText. Set WAHA_BASE_URL and WAHA_API_KEY as n8n environment variables."
+  }
+}

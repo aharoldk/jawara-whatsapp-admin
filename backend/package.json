@@ -1,0 +1,22 @@
+{
+  "name": "jawara-backend",
+  "version": "1.0.0",
+  "description": "Hapi.js backend for Jawara WhatsApp Admin",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.3.10",
+    "dotenv": "^16.4.5",
+    "joi": "^17.13.1",
+    "axios": "^1.7.2",
+    "mongoose": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

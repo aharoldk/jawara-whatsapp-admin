@@ -1,0 +1,263 @@
+{
+  "name": "Phase 3 — Reminders & Broadcast Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 5 }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger — Every 5 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 200]
+    },
+
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BACKEND_BASE_URL }}/reminders/pending",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" }]
+        },
+        "options": {}
+      },
+      "id": "get-reminders",
+      "name": "Backend — Get Pending Reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 100]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split-reminders",
+      "name": "Split Reminders",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [680, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WAHA_BASE_URL }}/api/sendText",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Api-Key", "value": "={{ $env.WAHA_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "session", "value": "default" },
+            { "name": "chatId", "value": "={{ $json.recipientPhone.replace(/^\\+/, '') + '@c.us' }}" },
+            { "name": "text", "value": "={{ $json.message }}" }
+          ]
+        },
+        "options": { "continueOnFail": true }
+      },
+      "id": "send-reminder",
+      "name": "WAHA — Send Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 100]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.BACKEND_BASE_URL }}/reminders/{{ $('Split Reminders').item.json._id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [{ "name": "sent", "value": "=true" }]
+        },
+        "options": {}
+      },
+      "id": "mark-reminder-sent",
+      "name": "Backend — Mark Reminder Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 100]
+    },
+
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BACKEND_BASE_URL }}/broadcast/jobs/pending",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" }]
+        },
+        "options": {}
+      },
+      "id": "get-broadcast-jobs",
+      "name": "Backend — Get Pending Broadcast Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 340]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split-jobs",
+      "name": "Split Jobs",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [680, 340]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.BACKEND_BASE_URL }}/broadcast/jobs/{{ $json._id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [{ "name": "status", "value": "sending" }]
+        },
+        "options": {}
+      },
+      "id": "mark-sending",
+      "name": "Backend — Mark Job Sending",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 340]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Split Jobs').item.json;\nconst phones = job.listId?.recipientPhones ?? [];\nreturn phones.map(phone => ({ json: { phone, message: job.message, jobId: job._id } }));"
+      },
+      "id": "expand-recipients",
+      "name": "Code — Expand Recipients",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WAHA_BASE_URL }}/api/sendText",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Api-Key", "value": "={{ $env.WAHA_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "session", "value": "default" },
+            { "name": "chatId", "value": "={{ $json.phone.replace(/^\\+/, '') + '@c.us' }}" },
+            { "name": "text", "value": "={{ $json.message }}" }
+          ]
+        },
+        "options": { "continueOnFail": true }
+      },
+      "id": "send-broadcast",
+      "name": "WAHA — Send Broadcast",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 340]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Count successes and failures across all items for this job\nconst items = $input.all();\nconst jobId = items[0]?.json?.jobId ?? '';\nconst sentCount = items.filter(i => i.json.statusCode === 201 || i.json.statusCode === 200).length;\nconst failedCount = items.length - sentCount;\nreturn [{ json: { jobId, sentCount, failedCount } }];"
+      },
+      "id": "aggregate-results",
+      "name": "Code — Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 340]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.BACKEND_BASE_URL }}/broadcast/jobs/{{ $json.jobId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.BACKEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "status", "value": "completed" },
+            { "name": "sentCount", "value": "={{ $json.sentCount }}" },
+            { "name": "failedCount", "value": "={{ $json.failedCount }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "mark-completed",
+      "name": "Backend — Mark Job Completed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 340]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger — Every 5 min": {
+      "main": [
+        [
+          { "node": "Backend — Get Pending Reminders", "type": "main", "index": 0 },
+          { "node": "Backend — Get Pending Broadcast Jobs", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Backend — Get Pending Reminders": {
+      "main": [[{ "node": "Split Reminders", "type": "main", "index": 0 }]]
+    },
+    "Split Reminders": {
+      "main": [[{ "node": "WAHA — Send Reminder", "type": "main", "index": 0 }]]
+    },
+    "WAHA — Send Reminder": {
+      "main": [[{ "node": "Backend — Mark Reminder Sent", "type": "main", "index": 0 }]]
+    },
+    "Backend — Get Pending Broadcast Jobs": {
+      "main": [[{ "node": "Split Jobs", "type": "main", "index": 0 }]]
+    },
+    "Split Jobs": {
+      "main": [[{ "node": "Backend — Mark Job Sending", "type": "main", "index": 0 }]]
+    },
+    "Backend — Mark Job Sending": {
+      "main": [[{ "node": "Code — Expand Recipients", "type": "main", "index": 0 }]]
+    },
+    "Code — Expand Recipients": {
+      "main": [[{ "node": "WAHA — Send Broadcast", "type": "main", "index": 0 }]]
+    },
+    "WAHA — Send Broadcast": {
+      "main": [[{ "node": "Code — Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Code — Aggregate Results": {
+      "main": [[{ "node": "Backend — Mark Job Completed", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Runs every 5 minutes. Fetches pending reminders and broadcast jobs from the Hapi backend, sends them via WAHA, then marks them as sent/completed. Set WAHA_BASE_URL, WAHA_API_KEY, BACKEND_BASE_URL, BACKEND_API_KEY as n8n environment variables."
+  }
+}
