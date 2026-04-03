@@ -1,0 +1,223 @@
+# Jawara WhatsApp Admin — REST Client
+# Requires VS Code REST Client extension (humao.rest-client)
+# Values are read from .env automatically via {{$dotenv VAR}}
+
+@backend   = http://localhost:4000
+@n8n       = http://localhost:5678
+@api_key   = {{$dotenv BACKEND_API_KEY}}
+@n8n_user  = {{$dotenv N8N_BASIC_AUTH_USER}}
+@n8n_pass  = {{$dotenv N8N_BASIC_AUTH_PASSWORD}}
+
+
+# ═══════════════════════════════════════════════════════════
+# ORDERS
+# ═══════════════════════════════════════════════════════════
+
+### List all orders
+GET {{backend}}/orders
+x-api-key: {{api_key}}
+
+### Get single order
+GET {{backend}}/orders/ORDER_ID_HERE
+x-api-key: {{api_key}}
+
+### Create order
+POST {{backend}}/orders
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "clientName": "Budi Santoso",
+  "clientPhone": "6281234567890",
+  "items": [
+    { "name": "Nasi Box", "qty": 10, "price": 25000 }
+  ],
+  "deliveryDate": "2026-04-10",
+  "notes": "Tanpa sambal"
+}
+
+### Update order
+PUT {{backend}}/orders/ORDER_ID_HERE
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "status": "done"
+}
+
+### Delete order
+DELETE {{backend}}/orders/ORDER_ID_HERE
+x-api-key: {{api_key}}
+
+
+# ═══════════════════════════════════════════════════════════
+# REMINDERS
+# ═══════════════════════════════════════════════════════════
+
+### List all reminders
+GET {{backend}}/reminders
+x-api-key: {{api_key}}
+
+### List pending reminders
+GET {{backend}}/reminders/pending
+x-api-key: {{api_key}}
+
+### Create reminder
+POST {{backend}}/reminders
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "phone": "6281234567890",
+  "message": "Pesanan Anda siap dikirim besok!",
+  "scheduledAt": "2026-04-09T08:00:00.000Z"
+}
+
+### Update reminder
+PUT {{backend}}/reminders/REMINDER_ID_HERE
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "sent": true
+}
+
+### Delete reminder
+DELETE {{backend}}/reminders/REMINDER_ID_HERE
+x-api-key: {{api_key}}
+
+
+# ═══════════════════════════════════════════════════════════
+# BROADCAST LISTS
+# ═══════════════════════════════════════════════════════════
+
+### List all broadcast lists
+GET {{backend}}/broadcast/lists
+x-api-key: {{api_key}}
+
+### Get single broadcast list
+GET {{backend}}/broadcast/lists/LIST_ID_HERE
+x-api-key: {{api_key}}
+
+### Create broadcast list
+POST {{backend}}/broadcast/lists
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "name": "Pelanggan VIP",
+  "contacts": [
+    { "name": "Budi", "phone": "6281234567890" },
+    { "name": "Sari", "phone": "6289876543210" }
+  ]
+}
+
+### Update broadcast list
+PUT {{backend}}/broadcast/lists/LIST_ID_HERE
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "name": "Pelanggan VIP Updated"
+}
+
+### Delete broadcast list
+DELETE {{backend}}/broadcast/lists/LIST_ID_HERE
+x-api-key: {{api_key}}
+
+
+# ═══════════════════════════════════════════════════════════
+# BROADCAST JOBS
+# ═══════════════════════════════════════════════════════════
+
+### List pending broadcast jobs
+GET {{backend}}/broadcast/jobs/pending
+x-api-key: {{api_key}}
+
+### Broadcast history
+GET {{backend}}/broadcast/history
+x-api-key: {{api_key}}
+
+### Create broadcast job
+POST {{backend}}/broadcast/jobs
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "listId": "LIST_ID_HERE",
+  "message": "Halo! Ada promo spesial hari ini 🎉"
+}
+
+### Update broadcast job status
+PUT {{backend}}/broadcast/jobs/JOB_ID_HERE
+x-api-key: {{api_key}}
+Content-Type: application/json
+
+{
+  "status": "done"
+}
+
+
+# ═══════════════════════════════════════════════════════════
+# REPORTS & CALENDAR
+# ═══════════════════════════════════════════════════════════
+
+### Get reports summary
+GET {{backend}}/reports
+x-api-key: {{api_key}}
+
+### Get calendar events
+GET {{backend}}/calendar
+x-api-key: {{api_key}}
+
+### Get calendar events for a specific day
+GET {{backend}}/calendar/day?date=2026-04-10
+x-api-key: {{api_key}}
+
+
+# ═══════════════════════════════════════════════════════════
+# QDRANT (debug — check indexed documents)
+# ═══════════════════════════════════════════════════════════
+
+@qdrant = http://localhost:6333
+
+### List all collections
+GET {{qdrant}}/collections
+
+### Get collection info (point count etc.)
+GET {{qdrant}}/collections/business-docs
+
+### Search / peek first 5 stored points
+POST {{qdrant}}/collections/business-docs/points/scroll
+Content-Type: application/json
+
+{
+  "limit": 5,
+  "with_payload": true,
+  "with_vector": false
+}
+
+# ═══════════════════════════════════════════════════════════
+# N8N WEBHOOKS
+# ═══════════════════════════════════════════════════════════
+
+### Index a document into Qdrant (test mode — workflow must be open in n8n editor)
+# Paste the document text in the "text" field below
+POST {{n8n}}/webhook-test/index-docs
+Authorization: Basic {{n8n_user}} {{n8n_pass}}
+Content-Type: application/json
+
+{
+  "filename": "knowledge-base-example.md",
+  "text": "# Jawara Business Knowledge Base\n\nProduk kami:\n- Nasi Box Reguler: Rp 25.000\n- Nasi Box Premium: Rp 35.000\n\nJam operasional: Senin-Sabtu 08.00-17.00 WIB.\n\nPemesanan minimal H-1 sebelum pengiriman.\nHubungi admin untuk info lebih lanjut."
+}
+
+### Index a document into Qdrant (production mode — workflow must be active)
+POST {{n8n}}/webhook/index-docs
+Authorization: Basic {{n8n_user}} {{n8n_pass}}
+Content-Type: application/json
+
+{
+  "filename": "knowledge-base-example.md",
+  "text": "# Jawara Business Knowledge Base\n\nProduk kami:\n- Nasi Box Reguler: Rp 25.000\n- Nasi Box Premium: Rp 35.000\n\nJam operasional: Senin-Sabtu 08.00-17.00 WIB.\n\nPemesanan minimal H-1 sebelum pengiriman.\nHubungi admin untuk info lebih lanjut."
+}
