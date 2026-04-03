@@ -43,6 +43,12 @@ services:
       WEBHOOK_URL: http://localhost:5678   # public-facing URL if behind reverse proxy
       GENERIC_TIMEZONE: Asia/Jakarta
       N8N_LOG_LEVEL: info
+      # Workflow runtime env vars (accessible via $env.* in workflow expressions)
+      N8N_GEMINI_API_KEY: ${N8N_GEMINI_API_KEY}
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_BASE_URL: http://waha:3000
+      BACKEND_API_KEY: ${BACKEND_API_KEY}
+      BACKEND_BASE_URL: http://backend:4000
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
