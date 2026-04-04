@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery } from 'react-query'
 import { ShoppingCart, Bell, Megaphone, Users, Wifi, WifiOff, RefreshCw, QrCode, Trash2, Plus } from 'lucide-react'
 import { ordersApi, remindersApi, broadcastApi, wahaApi } from '../lib/api'
@@ -14,6 +14,8 @@ export default function Dashboard() {
   const [qrSession, setQrSession] = useState(null)
   const [qrData, setQrData] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
+  const [qrCountdown, setQrCountdown] = useState(null)
+  const qrTimerRef = useRef(null)
   const [addingSession, setAddingSession] = useState(false)
   const { data: ordersData, isLoading: ordersLoading } = useQuery('orders-summary', () =>
     ordersApi.list({ limit: 5, page: 1 }).then((r) => r.data),
@@ -87,23 +89,45 @@ export default function Dashboard() {
   }
 
   async function handleShowQR(name) {
+    // Clear any existing auto-refresh timer
+    if (qrTimerRef.current) clearInterval(qrTimerRef.current)
     setQrLoading(true)
     setQrSession(name)
     if (qrData && qrData.startsWith('blob:')) URL.revokeObjectURL(qrData)
     setQrData(null)
-    try {
-      const res = await wahaApi.getQR(name)
-      // Backend returns { value: 'data:image/png;base64,...' }
-      const value = res.data?.value ?? res.data
-      if (!value) throw new Error('No QR value returned')
-      setQrData(typeof value === 'string' ? value : JSON.stringify(value))
-    } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Failed to fetch QR code'
-      toast.error(msg)
-      setQrSession(null)
-    } finally {
-      setQrLoading(false)
+    setQrCountdown(null)
+
+    async function fetchQR() {
+      try {
+        const res = await wahaApi.getQR(name)
+        const value = res.data?.value ?? res.data
+        if (!value) throw new Error('No QR value returned')
+        setQrData(typeof value === 'string' ? value : JSON.stringify(value))
+        // Start 20-second countdown then auto-refresh
+        let secs = 20
+        setQrCountdown(secs)
+        if (qrTimerRef.current) clearInterval(qrTimerRef.current)
+        qrTimerRef.current = setInterval(async () => {
+          secs -= 1
+          setQrCountdown(secs)
+          if (secs <= 0) {
+            clearInterval(qrTimerRef.current)
+            setQrCountdown(null)
+            setQrData(null)
+            setQrLoading(true)
+            await fetchQR()
+          }
+        }, 1000)
+      } catch (err) {
+        const msg = err.response?.data?.error || err.message || 'Failed to fetch QR code'
+        toast.error(msg)
+        setQrSession(null)
+      } finally {
+        setQrLoading(false)
+      }
     }
+
+    await fetchQR()
   }
 
   return (
@@ -200,11 +224,18 @@ export default function Dashboard() {
                       {qrLoading ? (
                         <p className="text-sm text-gray-400 py-4">Loading QR…</p>
                       ) : qrData ? (
-                        <img
-                          src={qrData}
-                          alt="WhatsApp QR Code"
-                          className="mx-auto w-48 h-48 rounded"
-                        />
+                        <>
+                          <img
+                            src={qrData}
+                            alt="WhatsApp QR Code"
+                            className="mx-auto w-64 h-64"
+                          />
+                          {qrCountdown !== null && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Refreshes in <span className={qrCountdown <= 5 ? 'text-red-500 font-semibold' : ''}>{qrCountdown}s</span>
+                            </p>
+                          )}
+                        </>
                       ) : (
                         <p className="text-sm text-red-400 py-4">QR not available yet. Start the session first.</p>
                       )}
