@@ -22,8 +22,12 @@ services:
       WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
       WHATSAPP_DEFAULT_ENGINE: GOWS           # more stable connection than NOWEB
       WHATSAPP_DEFAULT_SESSION: default       # Core: auto-create the single allowed session on startup
-      WHATSAPP_HOOK_URL: http://n8n:5678/webhook/waha-incoming
-      WHATSAPP_HOOK_EVENTS: message,message.any
+      WHATSAPP_HOOK_URL: ${WHATSAPP_HOOK_URL}
+      WHATSAPP_HOOK_EVENTS: message
+      WAHA_SESSION_CONFIG_IGNORE_GROUPS: "true"
+      WAHA_SESSION_CONFIG_IGNORE_CHANNELS: "true"
+      WAHA_SESSION_CONFIG_IGNORE_STATUS: "true"
+      WAHA_SESSION_CONFIG_IGNORE_BROADCAST: "true"
     volumes:
       - waha_sessions:/app/.sessions
     networks:
