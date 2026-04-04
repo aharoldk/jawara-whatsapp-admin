@@ -1,5 +1,5 @@
 {
-  "name": "Document Indexer (Markdown → Qdrant)",
+  "name": "Document Indexer (TXT → Qdrant)",
   "nodes": [
     {
       "parameters": {
@@ -110,6 +110,6 @@
     "executionOrder": "v1"
   },
   "meta": {
-    "description": "POST a PDF/Word binary to /webhook/index-docs to chunk and store in Qdrant for RAG."
+    "description": "POST plain-text knowledge base to /webhook/index-docs as JSON body { text, filename } to chunk and store in Qdrant for RAG. Use knowledge-base-example.txt as the template."
   }
 }
