@@ -2,11 +2,14 @@ import 'dotenv/config';
 import Hapi from '@hapi/hapi';
 import dbPlugin from './plugins/db.js';
 import authPlugin from './plugins/auth.js';
+import wahaSessionPlugin from './plugins/waha.js';
 import ordersRoute from './routes/orders.js';
 import calendarRoute from './routes/calendar.js';
 import reportsRoute from './routes/reports.js';
 import remindersRoute from './routes/reminders.js';
 import broadcastRoute from './routes/broadcast.js';
+import usersRoute from './routes/users.js';
+import wahaRoute from './routes/waha.js';
 
 const server = Hapi.server({
   port: process.env.PORT ?? 4000,
@@ -22,6 +25,7 @@ const server = Hapi.server({
 async function init() {
   await server.register(dbPlugin);
   await server.register(authPlugin);
+  await server.register(wahaSessionPlugin);
 
   // Health check (public)
   server.route({
@@ -38,13 +42,20 @@ async function init() {
     reportsRoute,
     remindersRoute,
     broadcastRoute,
+    usersRoute,
+    wahaRoute,
   ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
     if (response.isBoom) {
       const { statusCode, payload } = response.output;
-      return h.response(JSON.parse(payload)).code(statusCode);
+      const body = typeof payload === 'string' ? JSON.parse(payload) : payload;
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`[${request.method.toUpperCase()}] ${request.path} → ${statusCode}`, body);
+        if (response.stack) console.error(response.stack);
+      }
+      return h.response(body).code(statusCode);
     }
     return h.continue;
   });
@@ -57,5 +68,14 @@ process.on('unhandledRejection', (err) => {
   console.error(err);
   process.exit(1);
 });
+
+const shutdown = async (signal) => {
+  console.log(`\nReceived ${signal}, stopping server...`);
+  await server.stop({ timeout: 5000 });
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
 
 init();
