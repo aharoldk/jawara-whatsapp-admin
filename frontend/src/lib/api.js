@@ -7,21 +7,17 @@ const http = axios.create({
   },
 })
 
-// ─── WAHA (direct, browser calls via proxy) ──────────────────────────────────
-const waha = axios.create({
-  baseURL: import.meta.env.VITE_WAHA_BASE_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '/waha'),
-  headers: {
-    'X-Api-Key': import.meta.env.VITE_WAHA_API_KEY || '',
-  },
-})
-
-// ─── Dashboard / WAHA session ────────────────────────────────────────────────
+// ─── Dashboard / WAHA session (via backend proxy) ─────────────────────────────
 export const wahaApi = {
-  getSessions: () => waha.get('/api/sessions'),
-  startSession: (name) => waha.post(`/api/sessions/${name}/start`),
-  stopSession: (name) => waha.post(`/api/sessions/${name}/stop`),
-  getSessionMe: (name) => waha.get(`/api/${name}/auth/me`),
-  getQR: (name) => waha.get(`/api/${name}/auth/qr`),
+  getSessions: () => http.get('/waha/sessions'),
+  createSession: (name) => http.post('/waha/sessions', { name }),
+  startSession: (name) => http.post(`/waha/sessions/${name}/start`),
+  stopSession: (name) => http.post(`/waha/sessions/${name}/stop`),
+  restartSession: (name) => http.post(`/waha/sessions/${name}/restart`),
+  resetSession: (name) => http.post(`/waha/sessions/${name}/reset`),
+  deleteSession: (name) => http.delete(`/waha/sessions/${name}`),
+  getSessionMe: (name) => http.get(`/waha/sessions/${name}/me`),
+  getQR: (name) => http.get(`/waha/sessions/${name}/qr`),
 }
 
 // ─── Orders ──────────────────────────────────────────────────────────────────
