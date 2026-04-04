@@ -20,7 +20,8 @@ services:
       WAHA_API_KEY: ${WAHA_API_KEY}
       WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
       WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
-      WHATSAPP_DEFAULT_ENGINE: NOWEB          # lightweight, no Chromium
+      WHATSAPP_DEFAULT_ENGINE: GOWS           # more stable connection than NOWEB
+      WHATSAPP_DEFAULT_SESSION: default       # Core: auto-create the single allowed session on startup
       WHATSAPP_HOOK_URL: http://n8n:5678/webhook/waha-incoming
       WHATSAPP_HOOK_EVENTS: message,message.any
     volumes:
@@ -84,44 +85,3 @@ services:
       - mongo_data:/data/db
     networks:
       - jawara
-
-  # ─── Hapi.js Backend API ─────────────────────────────────────────────
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: jawara_backend
-    restart: unless-stopped
-    ports:
-      - "4000:4000"
-    environment:
-      NODE_ENV: production
-      PORT: 4000
-      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/jawara?authSource=admin
-      BACKEND_API_KEY: ${BACKEND_API_KEY}
-      WAHA_BASE_URL: http://waha:3000
-      WAHA_API_KEY: ${WAHA_API_KEY}
-      WAHA_SESSION: default
-    networks:
-      - jawara
-    depends_on:
-      - mongo
-      - waha
-
-  # ─── Web Admin UI ─────────────────────────────────────────────────────
-  admin:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_BACKEND_API_KEY: ${BACKEND_API_KEY}
-        VITE_WAHA_API_KEY: ${WAHA_API_KEY}
-    container_name: jawara_admin
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    networks:
-      - jawara
-    depends_on:
-      - backend
-      - waha
