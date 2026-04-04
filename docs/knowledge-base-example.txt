@@ -1,0 +1,251 @@
+DIMSUM MENTAI KOKO — KNOWLEDGE BASE
+
+Dokumen ini adalah knowledge base yang dapat diunggah ke sistem RAG (Qdrant).
+Upload file ini melalui endpoint:
+
+  POST http://localhost:5678/webhook/index-docs
+  Body (JSON): { "text": "<isi file ini>", "filename": "knowledge-base-dimsum.txt" }
+
+Setelah diindeks, AI akan menggunakan konten ini untuk menjawab pertanyaan pelanggan.
+
+---
+
+1. TENTANG KAMI
+
+Nama Usaha  : Dimsum Mentai Koko
+Lokasi      : Jl. Pahlawan No. 88, Bandung, Jawa Barat
+Jam Buka    : Selasa – Minggu, 10.00 – 21.00 WIB (Senin tutup)
+WhatsApp    : 628111222333
+Instagram   : @dimsummentaikoko
+
+Kami adalah usaha dimsum rumahan yang menghadirkan perpaduan unik: dimsum klasik dengan topping saus mentai dan saus koko (coconut cream sauce). Selain itu kami menyediakan nasi mentai dan kreasi spesial Letter Mentai Rice untuk acara ulang tahun dan perayaan. Melayani pemesanan untuk dinikmati di rumah, acara ulang tahun, arisan, dan pesta korporat.
+
+---
+
+2. MENU & PRODUK
+
+A. DIMSUM ORIGINAL (per porsi isi 5 pcs)
+
+Produk                  | Harga
+------------------------|----------
+Siomay Ayam             | Rp 18.000
+Siomay Udang            | Rp 22.000
+Hakau Udang             | Rp 24.000
+Lumpia Goreng           | Rp 18.000
+Ceker Dimsum            | Rp 16.000
+Tahu Dimsum             | Rp 15.000
+Cheong Fun (kwetiau)    | Rp 20.000
+
+---
+
+B. DIMSUM MENTAI (per porsi isi 5 pcs)
+
+Semua dimsum bisa dipadukan dengan topping saus mentai spesial kami.
+Saus mentai dibuat dari mayonaise, mentai (pollock roe), dan di-torch hingga kecoklatan.
+
+Produk                     | Harga
+---------------------------|----------
+Siomay Mentai              | Rp 25.000
+Siomay Udang Mentai        | Rp 30.000
+Hakau Mentai               | Rp 32.000
+Lumpia Mentai              | Rp 25.000
+Ceker Mentai               | Rp 23.000
+Tahu Mentai                | Rp 22.000
+Cheong Fun Mentai          | Rp 28.000
+
+Catatan: Tingkat kepedasan saus mentai dapat disesuaikan (tidak pedas / sedang / pedas).
+
+---
+
+C. DIMSUM SAUS KOKO (per porsi isi 5 pcs)
+
+Dimsum dengan saus koko (coconut cream sauce) — perpaduan gurih santan, sedikit manis, dan rempah khas.
+
+Produk                        | Harga
+------------------------------|----------
+Siomay Saus Koko              | Rp 22.000
+Siomay Udang Saus Koko        | Rp 26.000
+Hakau Saus Koko               | Rp 28.000
+Lumpia Saus Koko              | Rp 22.000
+Tahu Saus Koko                | Rp 20.000
+Ceker Saus Koko               | Rp 21.000
+Cheong Fun Saus Koko          | Rp 25.000
+
+---
+
+D. NASI MENTAI
+
+Nasi pulen dengan topping saus mentai khas kami, di-torch langsung, disajikan dengan lauk pilihan.
+
+Produk                          | Harga
+--------------------------------|----------
+Nasi Mentai Original            | Rp 28.000
+Nasi Mentai + Ayam Goreng       | Rp 38.000
+Nasi Mentai + Udang             | Rp 45.000
+Nasi Mentai + Salmon            | Rp 55.000
+Nasi Mentai + Sosis + Telur     | Rp 35.000
+
+Add-on nasi mentai:
+- Tambah saus mentai ekstra     : Rp 5.000
+- Tambah kerupuk seaweed        : Rp 3.000
+- Tambah acar timun             : Rp 3.000
+
+---
+
+E. LETTER MENTAI RICE (Nasi Mentai Huruf)
+
+Kreasi spesial kami — nasi berbentuk huruf atau angka, disiram saus mentai dan di-torch, cocok sebagai pengganti atau pelengkap kue ulang tahun / kue perayaan. Setiap huruf/angka berukuran sekitar 20×20 cm, disajikan di atas papan saji kayu.
+
+Paket Letter Mentai Rice:
+
+Paket             | Keterangan                              | Harga
+------------------|-----------------------------------------|----------
+1 Huruf/Angka     | 1 karakter, tanpa dekorasi              | Rp 65.000
+3 Huruf/Angka     | misal "HBD" atau "18"                  | Rp 175.000
+5 Huruf/Angka     | misal "HAPPY" atau "SEHAT"             | Rp 285.000
+Nama (max 8 huruf)| nama lengkap, atas permintaan          | Rp 420.000
+Custom (>8 huruf) | harga per huruf                         | Rp 60.000/huruf
+
+Pilihan topping Letter Mentai Rice:
+- Mentai original (default)
+- Mentai pedas
+- Mentai + tobiko (telur ikan terbang) +Rp 10.000/huruf
+- Mentai + furikake +Rp 5.000/huruf
+
+Dekorasi tambahan (opsional):
+- Lilin ulang tahun               : Rp 5.000/set
+- Bunga edible / hiasan           : Rp 15.000
+- Papan saji kayu ukir nama       : Rp 35.000
+
+Catatan: Pemesanan Letter Mentai Rice minimal H-1 hari sebelum acara.
+
+---
+
+F. PAKET PESTA / ULANG TAHUN
+
+Paket Dimsum Pesta (untuk 10–50 orang):
+
+Paket Hemat (10 orang)
+- 5 porsi dimsum pilihan (50 pcs)
+- 2 porsi nasi mentai
+- 1 set Letter Mentai Rice 3 huruf
+- Harga: Rp 380.000
+
+Paket Seru (20 orang)
+- 10 porsi dimsum pilihan (100 pcs, mix mentai & saus koko)
+- 5 porsi nasi mentai
+- 1 set Letter Mentai Rice nama (max 6 huruf)
+- Harga: Rp 720.000
+
+Paket Mewah (30 orang)
+- 18 porsi dimsum pilihan (180 pcs, full mix)
+- 10 porsi nasi mentai
+- 1 set Letter Mentai Rice nama (max 8 huruf) + dekorasi
+- Harga: Rp 1.100.000
+
+Paket Korporat (50+ orang)
+- Hubungi kami untuk penawaran custom
+- Tersedia opsi catering di tempat acara
+
+Catatan: Pemesanan paket pesta minimal H-2 hari sebelum acara. DP 50%.
+
+---
+
+3. CARA PEMESANAN
+
+1. Hubungi kami via WhatsApp di 628111222333
+2. Informasikan:
+   - Nama pemesan
+   - Menu & jumlah porsi yang diinginkan
+   - Untuk Letter Mentai Rice: huruf/angka/nama, pilihan topping, dan dekorasi
+   - Tanggal dan waktu pengiriman / pengambilan
+   - Alamat pengiriman (jika diantar)
+3. Kami konfirmasi ketersediaan dan kirim total tagihan + nomor rekening DP
+4. Pastikan DP dibayar dalam 2 jam setelah konfirmasi untuk mengunci pesanan
+5. Pelunasan sebelum pesanan dikirim / diambil
+
+---
+
+4. PEMBAYARAN
+
+Metode yang diterima:
+- Transfer BCA     : 3344556677 a.n. Dimsum Mentai Koko
+- Transfer BRI     : 1122334455 a.n. Dimsum Mentai Koko
+- GoPay / OVO / DANA / ShopeePay : 628111222333
+- QRIS             : tersedia (scan di toko atau kirim QR via WhatsApp)
+
+DP (Down Payment):
+- Pesanan reguler (dimsum, nasi mentai)    : tidak perlu DP untuk < 5 porsi
+- Pesanan > 5 porsi atau Letter Mentai Rice: DP 50%
+- Paket pesta                              : DP 50% minimal H-2
+
+Bukti transfer harap dikirim via WhatsApp setelah bayar.
+
+---
+
+5. PENGIRIMAN
+
+Zona                   | Ongkos Kirim
+-----------------------|--------------
+Bandung Kota           | Rp 10.000 – 15.000 (via ojek online)
+Bandung Timur/Barat    | Rp 15.000 – 25.000
+Cimahi                 | Rp 20.000
+Luar area (>15 km)     | Hubungi kami
+
+- Jam pengiriman: 10.00 – 20.00 WIB
+- Untuk Letter Mentai Rice dan paket pesta: pengiriman menggunakan kurir kami sendiri agar mutu terjaga
+- Opsi ambil sendiri tersedia di toko
+
+---
+
+6. KEBIJAKAN PEMBATALAN
+
+- Pembatalan H-2 atau lebih: DP dikembalikan penuh
+- Pembatalan H-1            : DP dikembalikan 50%
+- Pembatalan di hari-H      : DP tidak dapat dikembalikan
+- Perubahan menu/jumlah maksimal H-1 sebelum pengiriman (tergantung stok)
+
+---
+
+7. FAQ
+
+Q: Apa itu saus mentai?
+A: Saus mentai adalah saus berbahan dasar mayonaise Jepang yang dicampur dengan mentai (telur ikan pollock berbumbu), lalu di-torch (dibakar sebentar) hingga berwarna kecoklatan dan beraroma smoky. Rasanya creamy, gurih, sedikit asin, dengan aroma khas seafood.
+
+Q: Apa itu saus koko?
+A: Saus koko (coconut sauce) adalah saus berbahan santan kental yang dimasak dengan rempah ringan, sedikit manis dan gurih. Cocok untuk yang tidak suka rasa berat atau ingin variasi berbeda dari mentai.
+
+Q: Apakah Letter Mentai Rice bisa jadi pengganti kue ulang tahun?
+A: Bisa! Letter Mentai Rice kami semakin populer sebagai alternatif kue ulang tahun yang unik dan lezat. Bisa ditambahkan lilin, hiasan bunga edible, dan papan kayu ukir nama.
+
+Q: Berapa lama Letter Mentai Rice tahan?
+A: Sebaiknya dinikmati segera setelah diterima (maksimal 2 jam setelah pengiriman) karena nasi dan saus mentai paling enak dalam keadaan hangat dan segar.
+
+Q: Apakah dimsum bisa dipesan dalam porsi besar untuk acara?
+A: Ya, kami melayani pesanan dimsum untuk pesta/arisan/korporat. Tersedia paket hemat khusus (lihat bagian Paket Pesta). Minimal order untuk paket dimulai dari 10 orang.
+
+Q: Apakah ada pilihan tanpa seafood?
+A: Ada. Siomay ayam, lumpia, tahu, dan ceker tidak mengandung bahan laut. Letter Mentai Rice bisa disajikan dengan topping mentai tanpa tobiko (telur ikan).
+
+Q: Berapa lama waktu antar?
+A: Untuk pesanan reguler (dimsum, nasi mentai) estimasi 30–60 menit setelah konfirmasi. Untuk Letter Mentai Rice dan paket pesta sudah dijadwalkan sesuai kesepakatan.
+
+Q: Bisakah saya request huruf/angka apa saja?
+A: Ya! Semua huruf alfabet (A–Z) dan angka (0–9) tersedia. Kami juga bisa membuat simbol sederhana seperti tanda seru (!) atau bintang (*) — konfirmasi terlebih dahulu.
+
+Q: Apakah ada diskon untuk pesanan banyak?
+A: Ada! Pesanan dimsum > 20 porsi: diskon 5%. Paket pesta sudah termasuk harga bundling hemat dibanding pesan satuan. Pesanan rutin / langganan: hubungi kami untuk negosiasi harga spesial.
+
+---
+
+8. KONTAK & SOSIAL MEDIA
+
+WhatsApp  : 628111222333 (respons cepat jam kerja)
+Instagram : @dimsummentaikoko
+TikTok    : @dimsummentaikoko
+Alamat    : Jl. Pahlawan No. 88, Bandung 40123
+
+---
+
+Dokumen ini terakhir diperbarui: April 2026
+Harga dapat berubah sewaktu-waktu. Konfirmasi harga terkini via WhatsApp.
