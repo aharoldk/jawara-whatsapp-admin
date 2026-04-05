@@ -1,5 +1,5 @@
 {
-  "name": "Phase 1 — AI Responder (WAHA → AI Agent → Reply)",
+  "name": "AI Responder (WAHA → AI Agent → Reply)",
   "nodes": [
     {
       "parameters": {
@@ -19,8 +19,8 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.body.payload.fromMe }}",
-              "value2": true
+              "value1": "={{ $json.body?.payload?.fromMe }}",
+              "operation": "isTrue"
             }
           ]
         }
@@ -36,7 +36,7 @@
         "promptType": "define",
         "text": "={{ $json.body.payload.body }}",
         "options": {
-          "systemMessage": "={{ $env.AI_SYSTEM_PROMPT }}"
+          "systemMessage": "Kamu adalah admin toko bernama Kiki. Kamu perempuan, ramah, dan santai tapi tetap sopan.\n\nGaya komunikasi:\n- Bahasa Indonesia santai, boleh pakai \"kak\", \"nih\", \"yuk\", \"deh\"\n- Singkat, jelas, tidak bertele-tele\n- Emoji secukupnya 😊\n\nATURAN PENTING — WAJIB DIIKUTI:\n- Kamu HANYA boleh menjawab berdasarkan informasi yang ada di knowledge base (hasil pencarian tool)\n- Jika informasi tidak ada di knowledge base, jawab: \"Maaf kak, untuk pertanyaan itu aku belum punya informasinya. Bisa hubungi admin kami langsung ya 🙏\"\n- DILARANG mengarang, menebak, atau menjawab dari pengetahuan umum\n- DILARANG membahas topik di luar produk, layanan, harga, pesanan, dan kebijakan toko\n- Jika pelanggan tanya di luar konteks toko (misal: berita, cuaca, dll), tolak dengan sopan dan arahkan kembali ke topik toko"
         }
       },
       "id": "ai-agent",
@@ -47,21 +47,21 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "modelName": "models/gemini-2.5-flash-lite",
         "options": {
           "temperature": 0.4,
-          "maxTokens": 1024
+          "maxOutputTokens": 1024
         }
       },
       "id": "llm-openai",
-      "name": "OpenAI Chat Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "name": "Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [560, 480],
       "credentials": {
-        "openAiApi": {
-          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
-          "name": "OpenAI account"
+        "googleGeminiApi": {
+          "id": "REPLACE_WITH_YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini account"
         }
       }
     },
@@ -79,43 +79,26 @@
     },
     {
       "parameters": {
-        "name": "knowledge_base",
-        "description": "Search the business knowledge base (products, services, pricing, FAQs, policies) to answer customer questions.",
-        "qdrantCollection": {
-          "__rl": true,
-          "value": "business-docs",
-          "mode": "id"
-        },
-        "options": {
-          "topK": 5
-        }
-      },
-      "id": "kb-tool",
-      "name": "Knowledge Base Tool",
-      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
-      "typeVersion": 1,
-      "position": [840, 480]
-    },
-    {
-      "parameters": {
-        "model": "text-embedding-3-small",
+        "modelName": "models/gemini-embedding-001",
         "options": {}
       },
       "id": "embeddings-kb",
-      "name": "OpenAI Embeddings (KB)",
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "name": "Gemini Embeddings (KB)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [840, 620],
       "credentials": {
-        "openAiApi": {
-          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
-          "name": "OpenAI account"
+        "googleGeminiApi": {
+          "id": "REPLACE_WITH_YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini account"
         }
       }
     },
     {
       "parameters": {
         "mode": "retrieve-as-tool",
+        "toolName": "knowledge_base",
+        "toolDescription": "Cari informasi dari knowledge base bisnis (produk, layanan, harga, FAQ, kebijakan) untuk menjawab pertanyaan pelanggan.",
         "qdrantCollection": {
           "__rl": true,
           "value": "business-docs",
@@ -172,20 +155,19 @@
     "AI Agent": {
       "main": [[{ "node": "WAHA — Send Reply", "type": "main", "index": 0 }]]
     },
-    "OpenAI Chat Model": {
+    "Gemini Chat Model": {
       "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
     },
     "Simple Memory": {
       "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]]
     },
-    "Knowledge Base Tool": {
-      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
-    },
-    "OpenAI Embeddings (KB)": {
-      "ai_embedding": [[{ "node": "Qdrant Vector Store", "type": "ai_embedding", "index": 0 }]]
+    "Gemini Embeddings (KB)": {
+      "ai_embedding": [
+        [{ "node": "Qdrant Vector Store", "type": "ai_embedding", "index": 0 }]
+      ]
     },
     "Qdrant Vector Store": {
-      "ai_vectorStore": [[{ "node": "Knowledge Base Tool", "type": "ai_vectorStore", "index": 0 }]]
+      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
     }
   },
   "settings": {
