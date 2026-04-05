@@ -12,7 +12,7 @@ import usersRoute from './routes/users.js';
 import wahaRoute from './routes/waha.js';
 import productGroupsRoute from './routes/productGroups.js';
 import productsRoute from './routes/products.js';
-import docsRoute from './routes/docs.js';
+import configRoute from './routes/config.js';
 
 const server = Hapi.server({
   port: process.env.PORT ?? 4000,
@@ -49,7 +49,7 @@ async function init() {
     wahaRoute,
     productGroupsRoute,
     productsRoute,
-    docsRoute,
+    configRoute,
   ]);
 
   server.ext('onPreResponse', (request, h) => {
