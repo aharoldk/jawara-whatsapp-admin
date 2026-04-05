@@ -64,3 +64,26 @@ export const reportsApi = {
 export const customersApi = {
   list: (params) => http.get('/orders', { params: { limit: 100, ...params } }),
 }
+
+// ─── Product Groups ──────────────────────────────────────────────────────────
+export const productGroupsApi = {
+  list: (params) => http.get('/product-groups', { params }),
+  create: (data) => http.post('/product-groups', data),
+  update: (id, data) => http.put(`/product-groups/${id}`, data),
+  remove: (id) => http.delete(`/product-groups/${id}`),
+}
+
+// ─── Products ────────────────────────────────────────────────────────────────
+export const productsApi = {
+  list: (params) => http.get('/products', { params }),
+  get: (id) => http.get(`/products/${id}`),
+  create: (data) => http.post('/products', data),
+  update: (id, data) => http.put(`/products/${id}`, data),
+  remove: (id) => http.delete(`/products/${id}`),
+}
+
+// ─── Configuration ────────────────────────────────────────────────────────────
+export const configApi = {
+  get: () => http.get('/config'),
+  save: (data) => http.put('/config', data),
+}

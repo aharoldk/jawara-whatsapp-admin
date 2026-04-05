@@ -7,9 +7,12 @@ import Dashboard from './pages/Dashboard'
 import Customers from './pages/Customers'
 import Orders from './pages/Orders'
 import Reminders from './pages/Reminders'
+import Products from './pages/Products'
+import ProductGroups from './pages/ProductGroups'
 import Broadcast from './pages/Broadcast'
 import Calendar from './pages/Calendar'
 import Reports from './pages/Reports'
+import Configuration from './pages/Configuration'
 
 export default function App() {
   return (
@@ -23,10 +26,13 @@ export default function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="customers" element={<Customers />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="product-groups" element={<ProductGroups />} />
+              <Route path="products" element={<Products />} />
               <Route path="reminders" element={<Reminders />} />
               <Route path="broadcast" element={<Broadcast />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="configuration" element={<Configuration />} />
             </Route>
           </Route>
         </Routes>

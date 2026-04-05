@@ -1,4 +1,4 @@
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { Fragment } from 'react'
 import { X } from 'lucide-react'
 
@@ -7,7 +7,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
+        <TransitionChild
           as={Fragment}
           enter="ease-out duration-200"
           enterFrom="opacity-0"
@@ -17,11 +17,11 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 bg-black/40" />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-out duration-200"
               enterFrom="opacity-0 scale-95"
@@ -30,13 +30,13 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel
+              <DialogPanel
                 className={`w-full ${widths[size]} bg-white rounded-xl shadow-xl p-6`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <Dialog.Title className="text-base font-semibold text-gray-900">
+                  <DialogTitle className="text-base font-semibold text-gray-900">
                     {title}
-                  </Dialog.Title>
+                  </DialogTitle>
                   <button
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -45,8 +45,8 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
                   </button>
                 </div>
                 {children}
-              </Dialog.Panel>
-            </Transition.Child>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
