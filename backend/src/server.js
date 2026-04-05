@@ -10,6 +10,9 @@ import remindersRoute from './routes/reminders.js';
 import broadcastRoute from './routes/broadcast.js';
 import usersRoute from './routes/users.js';
 import wahaRoute from './routes/waha.js';
+import productGroupsRoute from './routes/productGroups.js';
+import productsRoute from './routes/products.js';
+import docsRoute from './routes/docs.js';
 
 const server = Hapi.server({
   port: process.env.PORT ?? 4000,
@@ -44,6 +47,9 @@ async function init() {
     broadcastRoute,
     usersRoute,
     wahaRoute,
+    productGroupsRoute,
+    productsRoute,
+    docsRoute,
   ]);
 
   server.ext('onPreResponse', (request, h) => {
